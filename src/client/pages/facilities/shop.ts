@@ -1,4 +1,4 @@
-import { ITEM_TYPE_LABEL, ITEMS } from '../../../shared/master/items';
+import { describeItem, ITEM_TYPE_LABEL, ITEMS } from '../../../shared/master/items';
 import type { InventoryItem, Me } from '../../../shared/types';
 import { api } from '../../api';
 import { yen } from '../../format';
@@ -13,7 +13,7 @@ export async function renderShop(container: HTMLElement, me: Me, rerender: () =>
       <tr>
         <td>${ITEM_TYPE_LABEL[item.effect.type]}</td>
         <td>${item.name}</td>
-        <td>${item.description}</td>
+        <td>${describeItem(item)}</td>
         <td>${yen(item.price)}</td>
         <td>${owned(item.id)}</td>
         <td class="nowrap">

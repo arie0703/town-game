@@ -1,5 +1,6 @@
 import type { JobView, Me } from '../../../shared/types';
 import { api } from '../../api';
+import { formatKg } from '../../../shared/weight';
 import { yen } from '../../format';
 import { escapeHtml } from '../../html';
 import { postAction } from '../../layout';
@@ -20,6 +21,7 @@ export async function renderJobCenter(container: HTMLElement, me: Me, rerender: 
           <td>${escapeHtml(job.name)}</td>
           <td>${yen(job.baseSalary)}</td>
           <td>${escapeHtml(job.powerLabel)}</td>
+          <td>-${formatKg(job.weightLoss)}</td>
           <td>${requirements}</td>
           <td>${action}</td>
         </tr>
@@ -32,7 +34,7 @@ export async function renderJobCenter(container: HTMLElement, me: Me, rerender: 
       ${me.job.id === 'none' ? '' : '<button type="button" id="quit">退職する</button>'}
     </p>
     <table class="table list">
-      <thead><tr><th>職業</th><th>給料</th><th>消費</th><th>就職条件</th><th></th></tr></thead>
+      <thead><tr><th>職業</th><th>給料</th><th>消費</th><th>体重</th><th>就職条件</th><th></th></tr></thead>
       <tbody>${rows}</tbody>
     </table>
   `;

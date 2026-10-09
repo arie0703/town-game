@@ -14,7 +14,9 @@ export type Job = {
   requirements: JobRequirements;
   power: { type: 'body' | 'brain'; cost: number };
   conditionCost: number;
-  hungerCost: number;
+  fullnessCost: number;
+  // 1回働くと減る体重（kg）。身体を使う仕事ほど多い
+  weightLoss: number;
   abilityGain: Partial<Abilities>;
 };
 
@@ -27,7 +29,8 @@ export const JOBS: readonly Job[] = [
     requirements: {},
     power: { type: 'body', cost: 0 },
     conditionCost: 0,
-    hungerCost: 0,
+    fullnessCost: 0,
+    weightLoss: 0,
     abilityGain: {},
   },
   {
@@ -37,7 +40,8 @@ export const JOBS: readonly Job[] = [
     requirements: {},
     power: { type: 'body', cost: 20 },
     conditionCost: 5,
-    hungerCost: 10,
+    fullnessCost: 10,
+    weightLoss: 0.5,
     abilityGain: { stamina: 1 },
   },
   {
@@ -47,7 +51,8 @@ export const JOBS: readonly Job[] = [
     requirements: { brainTotal: 200 },
     power: { type: 'brain', cost: 25 },
     conditionCost: 6,
-    hungerCost: 10,
+    fullnessCost: 10,
+    weightLoss: 0.2,
     abilityGain: { social: 1, language: 1 },
   },
   {
@@ -57,7 +62,8 @@ export const JOBS: readonly Job[] = [
     requirements: { abilities: { japanese: 40, social: 40 } },
     power: { type: 'brain', cost: 30 },
     conditionCost: 7,
-    hungerCost: 10,
+    fullnessCost: 10,
+    weightLoss: 0.3,
     abilityGain: { japanese: 1, social: 1 },
   },
   {
@@ -67,7 +73,8 @@ export const JOBS: readonly Job[] = [
     requirements: { abilities: { math: 50 } },
     power: { type: 'brain', cost: 35 },
     conditionCost: 8,
-    hungerCost: 12,
+    fullnessCost: 12,
+    weightLoss: 0.1,
     abilityGain: { math: 1, science: 1 },
   },
   {
@@ -77,7 +84,8 @@ export const JOBS: readonly Job[] = [
     requirements: { bodyTotal: 220 },
     power: { type: 'body', cost: 40 },
     conditionCost: 10,
-    hungerCost: 15,
+    fullnessCost: 15,
+    weightLoss: 0.8,
     abilityGain: { stamina: 1, speed: 1, power: 1 },
   },
   {
@@ -87,7 +95,8 @@ export const JOBS: readonly Job[] = [
     requirements: { abilities: { looks: 50 }, bmiRange: [18.5, 22] },
     power: { type: 'body', cost: 30 },
     conditionCost: 6,
-    hungerCost: 8,
+    fullnessCost: 8,
+    weightLoss: 0.5,
     abilityGain: { looks: 1 },
   },
   {
@@ -97,7 +106,8 @@ export const JOBS: readonly Job[] = [
     requirements: { abilities: { humor: 40 } },
     power: { type: 'brain', cost: 25 },
     conditionCost: 6,
-    hungerCost: 10,
+    fullnessCost: 10,
+    weightLoss: 0.3,
     abilityGain: { humor: 1 },
   },
 ];

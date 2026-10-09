@@ -4,6 +4,7 @@ import { api } from '../api';
 import { requireLogin } from '../auth';
 import { mapHtml } from '../components/map';
 import { dateTime, gauge, yen } from '../format';
+import { formatKg } from '../../shared/weight';
 import { escapeHtml } from '../html';
 import { postAction, renderLayout } from '../layout';
 
@@ -19,9 +20,9 @@ function statusTable(me: Me): string {
     ['身体パワー', gauge(me.bodyPower.current, me.bodyPower.max)],
     ['頭脳パワー', gauge(me.brainPower.current, me.brainPower.max)],
     ['コンディション', gauge(me.condition, 100)],
-    ['空腹度', gauge(me.hunger, 100)],
+    ['満腹度', gauge(me.fullness, 100)],
     ['身長', `${me.height} cm`],
-    ['体重', `${me.weight} kg`],
+    ['体重', formatKg(me.weight)],
     ['BMI', String(me.bmi)],
     ['恋人', userName(me.lover)],
     ['配偶者', userName(me.spouse)],

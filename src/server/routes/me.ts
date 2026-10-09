@@ -3,6 +3,7 @@ import { ABILITIES, type Abilities } from '../../shared/abilities';
 import { jobName } from '../../shared/master/jobs';
 import type { EventItem, Me, UserRef } from '../../shared/types';
 import { clearLoginCookie, requireAuth, type AuthEnv } from '../auth';
+import { gToKg } from '../../shared/weight';
 import { db } from '../db';
 import { landValueOf } from '../game/assets';
 import { bmi, categoryTotal, maxPowers } from '../game/status';
@@ -32,9 +33,9 @@ export async function loadMe(userId: number): Promise<Me | null> {
     brainPower: { current: user.brain_power, max: powers.brain },
     condition: user.condition,
     height: user.height,
-    weight: user.weight,
-    bmi: bmi(user.height, user.weight),
-    hunger: user.hunger,
+    weight: gToKg(user.weight_g),
+    bmi: bmi(user.height, user.weight_g),
+    fullness: user.fullness,
     lover: await findUserRef(user.lover_id),
     spouse: await findUserRef(user.spouse_id),
     abilities,

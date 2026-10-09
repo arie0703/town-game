@@ -1,4 +1,4 @@
-import { CHEAPEST_MENU_PRICE, MENUS } from '../../../shared/master/menus';
+import { CHEAPEST_MENU_PRICE, describeMenu, MENUS } from '../../../shared/master/menus';
 import type { Me } from '../../../shared/types';
 import { yen } from '../../format';
 import { postAction } from '../../layout';
@@ -30,7 +30,7 @@ export async function renderCafeteria(container: HTMLElement, me: Me, rerender: 
     (menu) => `
       <tr>
         <td>${menu.name}</td>
-        <td>空腹度 +${menu.hunger}${menu.weight > 0 ? ` / 体重 +${menu.weight}` : ''}</td>
+        <td>${describeMenu(menu)}</td>
         <td>${yen(menu.price)}</td>
         <td><button type="button" data-menu="${menu.id}">食べる</button></td>
       </tr>
@@ -38,7 +38,7 @@ export async function renderCafeteria(container: HTMLElement, me: Me, rerender: 
   ).join('');
 
   container.innerHTML = `
-    <p>持ち金: ${yen(me.money)}　空腹度: ${me.hunger} / 100</p>
+    <p>持ち金: ${yen(me.money)}　満腹度: ${me.fullness} / 100</p>
     <table class="table list">
       <thead><tr><th>メニュー</th><th>効果</th><th>価格</th><th></th></tr></thead>
       <tbody>${rows}</tbody>

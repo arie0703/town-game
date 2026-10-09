@@ -1,11 +1,11 @@
 import { Hono } from 'hono';
 import { ABILITIES, type AbilityCategory, type AbilityKey } from '../../shared/abilities';
-import { BODY, TRAINING } from '../../shared/config';
+import { TRAINING } from '../../shared/config';
 import type { ActionResult } from '../../shared/types';
 import { requireAuth, type AuthEnv } from '../auth';
 import { GameError } from '../game/errors';
 import { addAbilities, runAction } from '../game/player';
-import { afterAction } from '../game/status';
+import { addWeight, afterAction } from '../game/status';
 
 function trainingGain(condition: number): number {
   return TRAINING.gainByCondition.find((g) => condition >= g.minCondition)!.gain;
@@ -27,12 +27,12 @@ trainingRoutes.post('/school', requireAuth, async (c) => {
     if (user.money < TRAINING.fee) throw new GameError('授業料が足りません');
 
     const gain = trainingGain(user.condition);
-    const after = afterAction(user, TRAINING.schoolHungerCost);
+    const after = afterAction(user, TRAINING.schoolFullnessCost);
     return {
       user: {
         money: user.money - TRAINING.fee,
         brain_power: user.brain_power - TRAINING.powerCost,
-        hunger: after.hunger,
+        fullness: after.fullness,
         condition: after.condition,
       },
       abilities: addAbilities(abilities, { [ability.key]: gain }),
@@ -49,13 +49,13 @@ trainingRoutes.post('/gym', requireAuth, async (c) => {
     if (user.money < TRAINING.fee) throw new GameError('利用料が足りません');
 
     const gain = trainingGain(user.condition);
-    const after = afterAction(user, TRAINING.gymHungerCost);
+    const after = afterAction(user, TRAINING.gymFullnessCost);
     return {
       user: {
         money: user.money - TRAINING.fee,
         body_power: user.body_power - TRAINING.powerCost,
-        weight: Math.max(BODY.minWeight, user.weight - TRAINING.gymWeightLoss),
-        hunger: after.hunger,
+        weight_g: addWeight(user.weight_g, -TRAINING.gymWeightLoss),
+        fullness: after.fullness,
         condition: after.condition,
       },
       abilities: addAbilities(abilities, { [ability.key]: gain }),

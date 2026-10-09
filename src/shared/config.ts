@@ -4,17 +4,17 @@ export const INITIAL = {
   money: 10_000,
   ability: 20,
   heightRange: [150, 200], // cm
-  weightRange: [45, 90], // kg
+  weightRange: [45, 90], // kg（0.1kg 単位のランダム）
   jobId: 'none',
   condition: 100,
-  hunger: 50,
+  fullness: 50,
 } as const;
 
 export const LIMITS = {
   // 能力値の上限（null = 上限なし）
   abilityMax: null as number | null,
   conditionMax: 100,
-  hungerMax: 100,
+  fullnessMax: 100,
 } as const;
 
 export const ACCOUNT = {
@@ -29,9 +29,9 @@ export const STATUS = {
   // BMI の標準範囲。外れるとコンディションの回復量が減る
   bmiNormalRange: [18.5, 25],
   bmiOutOfRangeRecoveryRate: 0.5,
-  // 空腹度がこの値未満で行動すると、コンディションが下がる
-  hungryThreshold: 20,
-  hungryConditionPenalty: 5,
+  // 満腹度がこの値未満で行動すると、コンディションが下がる
+  lowFullnessThreshold: 20,
+  lowFullnessConditionPenalty: 5,
 } as const;
 
 export const WORK = {
@@ -42,8 +42,8 @@ export const WORK = {
 
 export const REST = {
   powerRecovery: 50, // 身体パワー・頭脳パワーそれぞれの回復量
-  conditionRecovery: 20, // BMI 補正前の値
-  hungerCost: 15,
+  conditionRecovery: 30, // BMI 補正前の値
+  fullnessCost: 5,
 } as const;
 
 export const TRAINING = {
@@ -56,17 +56,17 @@ export const TRAINING = {
     { minCondition: 50, gain: 2 },
     { minCondition: 0, gain: 1 },
   ],
-  schoolHungerCost: 5,
-  gymHungerCost: 10,
-  gymWeightLoss: 1,
+  schoolFullnessCost: 5,
+  gymFullnessCost: 10,
+  gymWeightLoss: 0.8, // kg
 } as const;
 
 export const BODY = {
-  minWeight: 30,
+  minWeight: 30, // kg
 } as const;
 
 export const SOUP_KITCHEN = {
-  hungerRecovery: 30,
+  fullnessRecovery: 30,
 } as const;
 
 export const CHOHAN = {
@@ -75,7 +75,7 @@ export const CHOHAN = {
 
 export const FIGHT = {
   powerCost: 30,
-  hungerCost: 15,
+  fullnessCost: 15,
   // 戦闘力 = (身体合計 + 下記能力の合計) × コンディション補正
   extraWeightAbilities: ['power', 'speed', 'arm', 'leg'],
   winRateRange: [0.05, 0.95],

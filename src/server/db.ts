@@ -13,8 +13,8 @@ export interface UsersTable {
   brain_power: number;
   condition: number;
   height: number;
-  weight: number;
-  hunger: number;
+  weight_g: number; // 体重（グラム）
+  fullness: number;
   lover_id: number | null;
   spouse_id: number | null;
   created_at: string;
@@ -83,8 +83,8 @@ export async function initDb(): Promise<void> {
     .addColumn('brain_power', 'integer', (col) => col.notNull())
     .addColumn('condition', 'integer', (col) => col.notNull())
     .addColumn('height', 'integer', (col) => col.notNull())
-    .addColumn('weight', 'integer', (col) => col.notNull())
-    .addColumn('hunger', 'integer', (col) => col.notNull())
+    .addColumn('weight_g', 'integer', (col) => col.notNull())
+    .addColumn('fullness', 'integer', (col) => col.notNull())
     .addColumn('lover_id', 'integer', (col) => col.references('users.id'))
     .addColumn('spouse_id', 'integer', (col) => col.references('users.id'))
     .addColumn('created_at', 'text', (col) => col.notNull())

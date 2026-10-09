@@ -16,9 +16,9 @@ export type Me = {
   brainPower: Gauge;
   condition: number;
   height: number;
-  weight: number;
+  weight: number; // kg（0.1kg 単位）
   bmi: number;
-  hunger: number;
+  fullness: number;
   lover: UserRef | null;
   spouse: UserRef | null;
   abilities: Abilities;
@@ -44,6 +44,7 @@ export type JobView = {
   name: string;
   baseSalary: number;
   powerLabel: string;
+  weightLoss: number; // kg
   requirements: string[];
   unmet: string[];
   current: boolean;

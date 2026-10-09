@@ -32,9 +32,9 @@ export function jobRequirements(
   job: Job,
   abilities: Abilities,
   height: number,
-  weight: number,
+  weightG: number,
 ): { all: string[]; unmet: string[] } {
-  const checks = requirementChecks(job, abilities, bmi(height, weight));
+  const checks = requirementChecks(job, abilities, bmi(height, weightG));
   return { all: checks.map((c) => c.label), unmet: checks.filter((c) => !c.met).map((c) => c.label) };
 }
 
