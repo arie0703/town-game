@@ -26,7 +26,7 @@ export async function renderTownhall(container: HTMLElement, me: Me): Promise<vo
     .join('');
 
   container.innerHTML = `
-    <p>住民数: ${residents.length}人（総資産 = 持ち金 + 所有土地の評価額）</p>
+    <p>住民数: ${residents.length}人（総資産 = 持ち金 + 預金 + 所有土地の評価額）</p>
     <table class="table list">
       <thead><tr><th>順位</th><th>名前</th><th>職業</th><th>総資産</th><th>恋人/配偶者</th></tr></thead>
       <tbody>${rows}</tbody>

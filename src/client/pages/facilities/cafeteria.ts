@@ -7,6 +7,14 @@ import { yen } from '../../format';
 import { postAction } from '../../layout';
 
 function soupKitchenHtml(me: Me): string {
+  if (me.money === 0 && me.deposit > 0) {
+    return `
+      <div class="box soup">
+        <h3>炊き出し</h3>
+        ${npcHtml('npc_soup', '銀行にお金があるんだろ？引き出してきな')}
+      </div>
+    `;
+  }
   if (me.money === 0) {
     return `
       <div class="box soup">

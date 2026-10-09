@@ -26,8 +26,9 @@ export async function loadMe(userId: number): Promise<Me | null> {
     id: user.id,
     name: user.name,
     money: user.money,
-    // 総資産 = 持ち金 + 所有土地の評価額
-    totalAssets: user.money + (await landValueOf(db, user.id)),
+    deposit: user.deposit,
+    // 総資産 = 持ち金 + 預金 + 所有土地の評価額
+    totalAssets: user.money + user.deposit + (await landValueOf(db, user.id)),
     job: { id: user.job_id, name: jobName(user.job_id) },
     bodyPower: { current: user.body_power, max: powers.body },
     brainPower: { current: user.brain_power, max: powers.brain },

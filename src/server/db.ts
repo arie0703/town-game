@@ -7,6 +7,7 @@ export interface UsersTable {
   name: string;
   password_hash: string;
   money: number;
+  deposit: number; // 銀行の預金
   soup_kitchen_count: number;
   job_id: string;
   body_power: number;
@@ -77,6 +78,7 @@ export async function initDb(): Promise<void> {
     .addColumn('name', 'text', (col) => col.notNull().unique())
     .addColumn('password_hash', 'text', (col) => col.notNull())
     .addColumn('money', 'integer', (col) => col.notNull())
+    .addColumn('deposit', 'integer', (col) => col.notNull().defaultTo(0))
     .addColumn('soup_kitchen_count', 'integer', (col) => col.notNull().defaultTo(0))
     .addColumn('job_id', 'text', (col) => col.notNull())
     .addColumn('body_power', 'integer', (col) => col.notNull())
@@ -89,6 +91,15 @@ export async function initDb(): Promise<void> {
     .addColumn('spouse_id', 'integer', (col) => col.references('users.id'))
     .addColumn('created_at', 'text', (col) => col.notNull())
     .execute();
+
+  // 後から追加した列: 既存の DB に無ければ追加する
+  const usersTable = (await db.introspection.getTables()).find((t) => t.name === 'users');
+  if (usersTable && !usersTable.columns.some((col) => col.name === 'deposit')) {
+    await db.schema
+      .alterTable('users')
+      .addColumn('deposit', 'integer', (col) => col.notNull().defaultTo(0))
+      .execute();
+  }
 
   let abilities = db.schema
     .createTable('abilities')

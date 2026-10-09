@@ -54,6 +54,7 @@ authRoutes.post('/register', async (c) => {
         name,
         password_hash: passwordHash,
         money: INITIAL.money,
+        deposit: 0,
         soup_kitchen_count: 0,
         job_id: INITIAL.jobId,
         body_power: powers.body,

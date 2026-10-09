@@ -98,6 +98,7 @@ itemRoutes.post('/eat', requireAuth, async (c) => {
 itemRoutes.post('/cafeteria/soup', requireAuth, async (c) => {
   const message = await runAction(c.get('userId'), ({ user }) => {
     if (user.money !== 0) throw new GameError('炊き出しは一文無しの方限定です');
+    if (user.deposit > 0) throw new GameError('銀行に預金がある方は炊き出しを利用できません');
     assertNotFull(user.fullness);
     return {
       user: {

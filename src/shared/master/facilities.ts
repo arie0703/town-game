@@ -7,6 +7,7 @@ export const FACILITIES = [
   { id: 'cafeteria', name: '食堂', description: 'その場で食事ができる。' },
   { id: 'casino', name: '賭場', description: '丁半で一攫千金を狙う。' },
   { id: 'realestate', name: '不動産屋', description: '空き地を購入できる。' },
+  { id: 'bank', name: '銀行', description: 'お金を預けたり引き出したりできる。預けたお金はストリートファイトで負けても減らない。' },
   { id: 'izakaya', name: '居酒屋', description: 'お酒と料理を楽しめる。飲みすぎ注意。' },
   { id: 'townhall', name: '役場', description: '町の住民一覧（総資産ランキング）を見られる。' },
 ] as const;

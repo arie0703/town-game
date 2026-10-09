@@ -15,6 +15,7 @@ function userName(user: UserRef | null): string {
 function statusTable(me: Me): string {
   const rows: Array<[string, string]> = [
     ['持ち金', yen(me.money)],
+    ['預金', yen(me.deposit)],
     ['総資産', yen(me.totalAssets)],
     ['職業', escapeHtml(me.job.name)],
     ['身体パワー', gauge(me.bodyPower.current, me.bodyPower.max)],

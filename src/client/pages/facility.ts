@@ -4,6 +4,7 @@ import { npcHtml } from '../components/npc';
 import type { Me } from '../../shared/types';
 import { requireLogin } from '../auth';
 import { renderLayout } from '../layout';
+import { renderBank } from './facilities/bank';
 import { renderCafeteria } from './facilities/cafeteria';
 import { renderCasino } from './facilities/casino';
 import { renderIzakaya } from './facilities/izakaya';
@@ -26,6 +27,7 @@ const BODIES: Record<FacilityId, FacilityBody> = {
   casino: renderCasino,
   izakaya: renderIzakaya,
   realestate: renderRealestate,
+  bank: renderBank,
   townhall: renderTownhall,
 };
 

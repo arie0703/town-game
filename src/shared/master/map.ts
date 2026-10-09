@@ -9,7 +9,7 @@ const LAYOUT = [
   '...............',
   'LLL.LLL.LLL.LLL',
   'LLL.LLL.LLL.LLL',
-  'LLL.LLT.SLL.LLL',
+  'LLL.LLT.SBL.LLL',
   '...............',
   'LLL.LLC.JIL.LLL',
   'LLR.LLL.LLL.KLL',
@@ -30,6 +30,7 @@ const FACILITY_CHARS: Record<string, FacilityId> = {
   R: 'realestate',
   T: 'townhall',
   I: 'izakaya',
+  B: 'bank',
 };
 
 export const MAP_WIDTH = 15;

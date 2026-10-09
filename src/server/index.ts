@@ -7,6 +7,7 @@ import { initDb } from './db';
 import { GameError } from './game/errors';
 import { actionRoutes } from './routes/actions';
 import { authRoutes } from './routes/auth';
+import { bankRoutes } from './routes/bank';
 import { battleRoutes } from './routes/battle';
 import { itemRoutes } from './routes/items';
 import { loveRoutes } from './routes/love';
@@ -32,6 +33,7 @@ app.route('/', battleRoutes);
 app.route('/', realestateRoutes);
 app.route('/', loveRoutes);
 app.route('/', residentRoutes);
+app.route('/', bankRoutes);
 
 app.onError((err, c) => {
   if (err instanceof GameError) return c.json({ error: err.message }, 400);

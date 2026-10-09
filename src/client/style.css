@@ -412,3 +412,7 @@ select {
 .table caption + thead th {
   border-top: none;
 }
+
+.bank-balance {
+  max-width: 360px;
+}

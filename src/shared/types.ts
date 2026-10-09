@@ -10,6 +10,7 @@ export type Me = {
   id: number;
   name: string;
   money: number;
+  deposit: number;
   totalAssets: number;
   job: { id: string; name: string };
   bodyPower: Gauge;
