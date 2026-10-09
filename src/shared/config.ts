@@ -79,3 +79,8 @@ export const FIGHT = {
   prizePerPower: 10,
   loseConditionDamage: 30,
 } as const;
+
+export const JOB_LEVEL = {
+  // 職業レベルの区切り（経験値）。1回働くと経験値 +1。左から Lv1, Lv2, ...
+  expThresholds: [0, 10, 30, 60, 100],
+} as const;

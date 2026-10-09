@@ -457,3 +457,10 @@ select {
 .facility-blackmarket .npc-name {
   color: #a78bba;
 }
+
+.job-indent {
+  display: inline-block;
+  text-align: right;
+  padding-right: 4px;
+  color: #888;
+}

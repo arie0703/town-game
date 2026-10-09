@@ -1,6 +1,7 @@
 import Database from 'better-sqlite3';
 import { Kysely, SqliteDialect, type Generated } from 'kysely';
 import { ABILITIES, type AbilityKey } from '../shared/abilities';
+import { JOBS } from '../shared/master/jobs';
 
 export interface UsersTable {
   id: Generated<number>;
@@ -54,6 +55,12 @@ export interface RelationshipRequestsTable {
   created_at: string;
 }
 
+export interface UserJobExpTable {
+  user_id: number;
+  job_id: string;
+  exp: number;
+}
+
 export interface DB {
   users: UsersTable;
   lands: LandsTable;
@@ -61,6 +68,7 @@ export interface DB {
   abilities: AbilitiesTable;
   events: EventsTable;
   user_items: UserItemsTable;
+  user_job_exp: UserJobExpTable;
 }
 
 const dbPath = process.env.DB_PATH ?? 'town.sqlite';
@@ -148,9 +156,29 @@ export async function initDb(): Promise<void> {
     .execute();
 
   await db.schema
+    .createTable('user_job_exp')
+    .ifNotExists()
+    .addColumn('user_id', 'integer', (col) => col.notNull().references('users.id'))
+    .addColumn('job_id', 'text', (col) => col.notNull())
+    .addColumn('exp', 'integer', (col) => col.notNull())
+    .addPrimaryKeyConstraint('user_job_exp_pk', ['user_id', 'job_id'])
+    .execute();
+
+  await db.schema
     .createIndex('events_user_id_idx')
     .ifNotExists()
     .on('events')
     .columns(['user_id', 'id'])
+    .execute();
+
+  // 職業 ID の変更: スポーツ選手（athlete）→ フィットネストレーナー（fitness_trainer）
+  await db.updateTable('users').set({ job_id: 'fitness_trainer' }).where('job_id', '=', 'athlete').execute();
+  await db.updateTable('user_job_exp').set({ job_id: 'fitness_trainer' }).where('job_id', '=', 'athlete').execute();
+
+  // 削除した職業（会社員系統など）に就いている住民は無職に戻す
+  await db
+    .updateTable('users')
+    .set({ job_id: 'none' })
+    .where('job_id', 'not in', JOBS.map((j) => j.id))
     .execute();
 }
