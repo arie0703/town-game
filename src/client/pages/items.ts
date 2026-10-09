@@ -1,4 +1,4 @@
-import { describeItem, findItem, ITEM_TYPE_LABEL } from '../../shared/master/items';
+import { compareItems, describeItem, findItem, ITEM_TYPE_LABEL, type Item } from '../../shared/master/items';
 import type { InventoryItem } from '../../shared/types';
 import { api } from '../api';
 import { requireLogin } from '../auth';
@@ -9,10 +9,14 @@ export async function renderItems(root: HTMLElement): Promise<void> {
   if (!me) return;
   const inventory = await api.get<InventoryItem[]>('/items');
 
-  const rows = inventory
-    .map(({ itemId, quantity }) => {
-      const item = findItem(itemId);
-      if (!item) return '';
+  // 種類ごと（食事 → 能力アップ → 回復 → 薬）、同じ種類の中はマスタの定義順に並べる
+  const owned = inventory
+    .map(({ itemId, quantity }) => ({ item: findItem(itemId), quantity }))
+    .filter((o): o is { item: Item; quantity: number } => o.item !== undefined)
+    .sort((a, b) => compareItems(a.item, b.item));
+
+  const rows = owned
+    .map(({ item, quantity }) => {
       return `
         <tr>
           <td>${ITEM_TYPE_LABEL[item.effect.type]}</td>

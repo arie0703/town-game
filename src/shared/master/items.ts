@@ -50,8 +50,16 @@ export const ITEMS: readonly Item[] = [
   { id: 'mystery_ramen', name: '謎肉ラーメン', price: 1_800, shop: 'blackmarket', effect: { type: 'food', fullness: 60, weight: 2.5, bodyPower: 40, condition: -10, gain: { stamina: 3 } } },
 ];
 
+// 並び順: 種類（ITEM_TYPE_LABEL の定義順）→ マスタの定義順
+const TYPE_ORDER = Object.keys(ITEM_TYPE_LABEL) as Array<ItemEffect['type']>;
+
+export function compareItems(a: Item, b: Item): number {
+  return TYPE_ORDER.indexOf(a.effect.type) - TYPE_ORDER.indexOf(b.effect.type) || ITEMS.indexOf(a) - ITEMS.indexOf(b);
+}
+
+// 販売店の商品一覧（種類順）
 export function itemsOf(shop: Item['shop']): Item[] {
-  return ITEMS.filter((i) => i.shop === shop);
+  return ITEMS.filter((i) => i.shop === shop).sort(compareItems);
 }
 
 export function findItem(id: string): Item | undefined {
