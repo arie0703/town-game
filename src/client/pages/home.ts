@@ -2,7 +2,7 @@ import { ABILITIES, ABILITY_CATEGORIES, type AbilityCategory } from '../../share
 import type { EventItem, MapCellView, Me, UserRef } from '../../shared/types';
 import { api } from '../api';
 import { requireLogin } from '../auth';
-import { mapHtml } from '../components/map';
+import { bindMapHint, mapHtml } from '../components/map';
 import { dateTime, gauge, yen } from '../format';
 import { formatKg } from '../../shared/weight';
 import { escapeHtml } from '../html';
@@ -88,9 +88,8 @@ export async function renderHome(root: HTMLElement): Promise<void> {
       </section>
     </div>
     <section class="box">
-      <h2>町の地図</h2>
+      <h2>町の地図 <span class="map-hint" aria-live="polite"></span></h2>
       ${mapHtml(cells, { myId: me.id })}
-      <p class="note">施設をクリックすると中に入れます。</p>
     </section>
     <section class="box">
       <h2>出来事</h2>
@@ -98,6 +97,7 @@ export async function renderHome(root: HTMLElement): Promise<void> {
     </section>
   `;
 
+  bindMapHint(main, main.querySelector<HTMLElement>('.map-hint')!);
   const rerender = () => renderHome(root);
   main.querySelector('#work')!.addEventListener('click', () => postAction('/work', {}, rerender));
   main.querySelector('#rest')!.addEventListener('click', () => postAction('/rest', {}, rerender));

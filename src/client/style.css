@@ -464,3 +464,11 @@ select {
   padding-right: 4px;
   color: #888;
 }
+
+/* 「町の地図」見出しの横に出す施設の説明 */
+.map-hint {
+  margin-left: 8px;
+  font-size: 12px;
+  font-weight: normal;
+  color: #666;
+}
