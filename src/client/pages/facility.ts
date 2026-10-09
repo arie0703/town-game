@@ -1,9 +1,12 @@
 import { findFacility, type FacilityId } from '../../shared/master/facilities';
+import { FACILITY_NPC } from '../../shared/master/npcs';
+import { npcHtml } from '../components/npc';
 import type { Me } from '../../shared/types';
 import { requireLogin } from '../auth';
 import { renderLayout } from '../layout';
 import { renderCafeteria } from './facilities/cafeteria';
 import { renderCasino } from './facilities/casino';
+import { renderIzakaya } from './facilities/izakaya';
 import { renderJobCenter } from './facilities/job';
 import { renderRealestate } from './facilities/realestate';
 import { renderShop } from './facilities/shop';
@@ -21,6 +24,7 @@ const BODIES: Record<FacilityId, FacilityBody> = {
   shop: renderShop,
   cafeteria: renderCafeteria,
   casino: renderCasino,
+  izakaya: renderIzakaya,
   realestate: renderRealestate,
   townhall: renderTownhall,
 };
@@ -39,6 +43,7 @@ export async function renderFacility(root: HTMLElement, params: Record<string, s
     <section class="box facility">
       <h2>${facility.name}</h2>
       <p>${facility.description}</p>
+      ${npcHtml(FACILITY_NPC[facility.id])}
       <div id="facility-body"></div>
       <p><a href="#/home">← 町に戻る</a></p>
     </section>

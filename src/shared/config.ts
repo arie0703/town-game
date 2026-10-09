@@ -47,18 +47,12 @@ export const REST = {
 } as const;
 
 export const TRAINING = {
-  // 学校・ジム共通
-  powerCost: 20,
-  fee: 500,
-  // コンディションに応じた能力の上昇量（上から順に判定）
-  gainByCondition: [
-    { minCondition: 80, gain: 3 },
-    { minCondition: 50, gain: 2 },
-    { minCondition: 0, gain: 1 },
+  // コンディションに応じた能力上昇の倍率（上から順に判定）。種目ごとの上昇量はマスタ（trainings.ts）で定義
+  rateByCondition: [
+    { minCondition: 80, rate: 1 },
+    { minCondition: 50, rate: 0.6 },
+    { minCondition: 0, rate: 0.3 },
   ],
-  schoolFullnessCost: 5,
-  gymFullnessCost: 10,
-  gymWeightLoss: 0.8, // kg
 } as const;
 
 export const BODY = {

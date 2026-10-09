@@ -74,20 +74,21 @@ itemRoutes.post('/items/use', requireAuth, async (c) => {
   return c.json<ActionResult>({ message });
 });
 
-// 食堂で食事する
-itemRoutes.post('/cafeteria/eat', requireAuth, async (c) => {
+// 食堂・居酒屋で注文する
+itemRoutes.post('/eat', requireAuth, async (c) => {
   const body = await readBody(c.req.raw);
   const menu = typeof body.menuId === 'string' ? findMenu(body.menuId) : undefined;
   if (!menu) throw new GameError('そのメニューはありません');
 
   const message = await runAction(c.get('userId'), (player) => {
-    assertNotFull(player.user.fullness);
+    // お酒は別腹（満腹でも飲める）
+    if (!menu.drink) assertNotFull(player.user.fullness);
     if (player.user.money < menu.price) throw new GameError('お金が足りません');
     const change = applyEffect(player, menu.effect);
     return {
       user: { ...change.user, money: player.user.money - menu.price },
       abilities: change.abilities,
-      message: `食堂で${menu.name}を食べた（${yen(menu.price)}、${describeMenu(menu)}）`,
+      message: `${menu.shop === 'izakaya' ? '居酒屋' : '食堂'}で${menu.name}を${menu.drink ? '飲んだ' : '食べた'}（${yen(menu.price)}、${describeMenu(menu)}）`,
     };
   });
   return c.json<ActionResult>({ message });

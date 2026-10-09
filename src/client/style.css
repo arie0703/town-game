@@ -367,3 +367,48 @@ select {
   font: inherit;
   padding: 2px 4px;
 }
+
+/* 店主とセリフ */
+.npc {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 8px 0 12px;
+}
+
+.npc-icon {
+  /* 32×32 のドット絵を2倍で表示する */
+  width: 64px;
+  height: 64px;
+  flex-shrink: 0;
+  background: #fdf6e3;
+  border: 1px solid var(--border);
+}
+
+.npc-bubble {
+  position: relative;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 6px 10px;
+}
+
+.npc-bubble::before {
+  content: '';
+  position: absolute;
+  left: -7px;
+  top: 50%;
+  margin-top: -6px;
+  border: 6px solid transparent;
+  border-right-color: var(--border);
+  border-left: 0;
+}
+
+.npc-name {
+  font-size: 11px;
+  color: #666;
+}
+
+.table caption + thead th {
+  border-top: none;
+}
