@@ -416,3 +416,44 @@ select {
 .bank-balance {
   max-width: 360px;
 }
+
+/* 闇市場は暗い配色にする */
+.facility-blackmarket {
+  background: #1e1630;
+  color: #e9d5ff;
+  border-color: #6b3f99;
+}
+
+.facility-blackmarket a {
+  color: #c084fc;
+}
+
+.facility-blackmarket .note {
+  color: #a78bba;
+}
+
+.facility-blackmarket .table {
+  background: #2a1f40;
+}
+
+.facility-blackmarket .table caption,
+.facility-blackmarket .table th {
+  background: #3b2556;
+  color: #e9d5ff;
+}
+
+.facility-blackmarket .table th,
+.facility-blackmarket .table td {
+  border-color: #6b3f99;
+}
+
+.facility-blackmarket .npc-icon,
+.facility-blackmarket .npc-bubble {
+  background: #2a1f40;
+  border-color: #6b3f99;
+  color: #e9d5ff;
+}
+
+.facility-blackmarket .npc-name {
+  color: #a78bba;
+}

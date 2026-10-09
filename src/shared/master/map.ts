@@ -17,7 +17,7 @@ const LAYOUT = [
   '...............',
   'LLL.LLL.LLL.LLL',
   'LLL.LLL.LLL.LLL',
-  'LLL.LLL.LLL.LLL',
+  'LLL.LLL.LLL.LLX',
 ];
 
 const FACILITY_CHARS: Record<string, FacilityId> = {
@@ -31,6 +31,7 @@ const FACILITY_CHARS: Record<string, FacilityId> = {
   T: 'townhall',
   I: 'izakaya',
   B: 'bank',
+  X: 'blackmarket',
 };
 
 export const MAP_WIDTH = 15;

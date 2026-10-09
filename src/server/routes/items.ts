@@ -46,7 +46,7 @@ itemRoutes.post('/shop/buy', requireAuth, async (c) => {
     return {
       user: { money: user.money - total },
       items: { [item.id]: (items[item.id] ?? 0) + quantity },
-      message: `お店で${item.name}を${quantity}個買った（${yen(total)}）`,
+      message: `${item.shop === 'blackmarket' ? '闇市場' : 'お店'}で${item.name}を${quantity}個買った（${yen(total)}）`,
     };
   });
   return c.json<ActionResult>({ message });

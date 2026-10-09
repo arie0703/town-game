@@ -16,11 +16,11 @@ export type PlayerChange = {
   message: string;
 };
 
-// 能力値を加算する（上限が設定されていれば頭打ち）
+// 能力値を加算する（0 未満にはしない。上限が設定されていれば頭打ち）
 export function addAbilities(base: Abilities, gain: Partial<Abilities>): Partial<Abilities> {
   const result: Partial<Abilities> = {};
   for (const [key, value] of Object.entries(gain) as Array<[keyof Abilities, number]>) {
-    const next = base[key] + value;
+    const next = Math.max(0, base[key] + value);
     result[key] = LIMITS.abilityMax === null ? next : Math.min(next, LIMITS.abilityMax);
   }
   return result;

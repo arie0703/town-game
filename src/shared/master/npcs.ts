@@ -38,6 +38,10 @@ export const NPCS = {
     name: '行員の金子さん',
     lines: ['いらっしゃいませ。本日はどのようなご用件で？', '預けたお金は、ケンカに負けても減りませんよ', '金利？……当行では扱っておりません', '大切なお金、しっかりお預かりします'],
   },
+  npc_blackmarket: {
+    name: '闇の商人',
+    lines: ['....'],
+  },
   npc_izakaya: {
     name: '居酒屋の大将',
     lines: ['へいらっしゃい！', 'とりあえず生でいいかい？', '飲みすぎは明日の自分が困るぜ', '〆のラーメンは別腹だろ？'],
@@ -59,6 +63,7 @@ export const FACILITY_NPC: Record<FacilityId, NpcId> = {
   casino: 'npc_casino',
   realestate: 'npc_realestate',
   bank: 'npc_bank',
+  blackmarket: 'npc_blackmarket',
   izakaya: 'npc_izakaya',
   townhall: 'npc_townhall',
 };

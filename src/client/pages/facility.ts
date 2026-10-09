@@ -10,7 +10,7 @@ import { renderCasino } from './facilities/casino';
 import { renderIzakaya } from './facilities/izakaya';
 import { renderJobCenter } from './facilities/job';
 import { renderRealestate } from './facilities/realestate';
-import { renderShop } from './facilities/shop';
+import { renderBlackmarket, renderShop } from './facilities/shop';
 import { renderTownhall } from './facilities/townhall';
 import { renderGym, renderSchool } from './facilities/training';
 import { renderNotFound } from './not-found';
@@ -28,6 +28,7 @@ const BODIES: Record<FacilityId, FacilityBody> = {
   izakaya: renderIzakaya,
   realestate: renderRealestate,
   bank: renderBank,
+  blackmarket: renderBlackmarket,
   townhall: renderTownhall,
 };
 
@@ -42,7 +43,7 @@ export async function renderFacility(root: HTMLElement, params: Record<string, s
 
   const main = renderLayout(root, me);
   main.innerHTML = `
-    <section class="box facility">
+    <section class="box facility facility-${facility.id}">
       <h2>${facility.name}</h2>
       <p>${facility.description}</p>
       ${npcHtml(FACILITY_NPC[facility.id])}

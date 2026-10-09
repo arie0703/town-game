@@ -3,7 +3,7 @@ import { LIMITS } from '../../shared/config';
 import type { ConsumableEffect } from '../../shared/master/effects';
 import type { Player, PlayerChange } from './player';
 import { addAbilities } from './player';
-import { addWeight, bmi, clamp, conditionRecovery, maxPowers } from './status';
+import { addHeight, addWeight, bmi, clamp, conditionRecovery, maxPowers } from './status';
 
 // アイテム・食堂メニューの効果を反映した変更内容を返す（アイテムの個数・お金は呼び出し側で扱う）
 export function applyEffect(
@@ -17,10 +17,11 @@ export function applyEffect(
   return {
     user: {
       fullness: clamp(user.fullness + (effect.fullness ?? 0), 0, LIMITS.fullnessMax),
-      body_power: Math.min(max.body, user.body_power + (effect.bodyPower ?? 0)),
-      brain_power: Math.min(max.brain, user.brain_power + (effect.brainPower ?? 0)),
+      body_power: clamp(user.body_power + (effect.bodyPower ?? 0), 0, max.body),
+      brain_power: clamp(user.brain_power + (effect.brainPower ?? 0), 0, max.brain),
       condition: clamp(user.condition + condition, 0, LIMITS.conditionMax),
       weight_g: addWeight(user.weight_g, effect.weight ?? 0),
+      height: addHeight(user.height, effect.height ?? 0),
     },
     abilities: gained,
   };

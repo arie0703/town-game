@@ -24,9 +24,14 @@ export function bmi(heightCm: number, weightG: number): number {
   return Math.round((weightG / 1000 / (m * m)) * 10) / 10;
 }
 
-// 体重（g）に kg 単位の増減を加える。下限は BODY.minWeight
+// 体重（g）に kg 単位の増減を加える。BODY.minWeight〜maxWeight に収める
 export function addWeight(weightG: number, deltaKg: number): number {
-  return Math.max(kgToG(BODY.minWeight), weightG + kgToG(deltaKg));
+  return clamp(weightG + kgToG(deltaKg), kgToG(BODY.minWeight), kgToG(BODY.maxWeight));
+}
+
+// 身長（cm）に増減を加える。BODY.minHeight〜maxHeight に収める
+export function addHeight(heightCm: number, deltaCm: number): number {
+  return clamp(heightCm + deltaCm, BODY.minHeight, BODY.maxHeight);
 }
 
 export function isBmiNormal(value: number): boolean {

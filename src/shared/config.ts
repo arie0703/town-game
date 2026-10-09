@@ -57,6 +57,9 @@ export const TRAINING = {
 
 export const BODY = {
   minWeight: 30, // kg
+  maxWeight: 200, // kg
+  minHeight: 120, // cm
+  maxHeight: 220, // cm
 } as const;
 
 export const SOUP_KITCHEN = {
