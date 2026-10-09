@@ -66,11 +66,6 @@ export async function renderHome(root: HTMLElement): Promise<void> {
     <div class="home">
       <section>
         ${statusTable(me)}
-        <div class="box">
-          <h2>町の地図</h2>
-          ${mapHtml(cells, { myId: me.id })}
-          <p class="note">施設をクリックすると中に入れます。</p>
-        </div>
       </section>
       <section>
         <div class="box">
@@ -90,6 +85,11 @@ export async function renderHome(root: HTMLElement): Promise<void> {
         </div>
       </section>
     </div>
+    <section class="box">
+      <h2>町の地図</h2>
+      ${mapHtml(cells, { myId: me.id })}
+      <p class="note">施設をクリックすると中に入れます。</p>
+    </section>
     <section class="box">
       <h2>出来事</h2>
       ${eventList(events)}

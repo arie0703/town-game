@@ -72,3 +72,13 @@ src/
 - `src/shared/master/items.ts`: お店のアイテムの価格・効果
 - `src/shared/master/menus.ts`: 食堂のメニューの価格・効果
 - `src/shared/master/map.ts`: マップの配置と土地の価格
+
+## マップのアイコン
+
+マップのアイコンは `src/client/components/pixel-icons.ts` に 32×32 のドット絵として定義している（`rows` の1文字 = 1ピクセル、色は `palette`）。
+
+### ダウンロードした画像に差し替える
+
+`assets/icons/` に「アイコン名.拡張子」（例: `assets/icons/shop.png`）で画像を置くと、そのアイコンだけが画像に置き換わる。コードの変更は不要。
+
+手順・使えるアイコン名・利用規約の注意点は [docs/icon-assets.md](docs/icon-assets.md) を参照。

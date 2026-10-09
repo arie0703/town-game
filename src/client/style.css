@@ -3,6 +3,8 @@
   --fg: #222;
   --border: #555;
   --accent: #2a5db0;
+  /* マップの1マス。アイコン（32×32）が等倍で表示されるサイズ */
+  --cell-size: 32px;
 }
 
 * {
@@ -195,7 +197,7 @@ button {
   gap: 1px;
   background: #999;
   border: 2px solid var(--border);
-  max-width: 450px;
+  width: max-content;
 }
 
 .cell {
@@ -203,8 +205,18 @@ button {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 13px;
-  font-weight: bold;
+}
+
+.pixel-icon {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* 外部画像のアイコン。ドット絵がぼやけないよう拡大縮小は最近傍補間にする */
+img.pixel-icon {
+  object-fit: contain;
+  image-rendering: pixelated;
 }
 
 .cell-road {
@@ -215,12 +227,13 @@ button {
   background: #a8d08d;
 }
 
+/* 購入済みの土地は家の屋根の色で持ち主を区別する */
 .cell-owned {
-  background: #e6b86a;
+  color: #e6a23c;
 }
 
 .cell-mine {
-  background: #e67a6a;
+  color: #e04848;
 }
 
 button.cell {
@@ -230,7 +243,7 @@ button.cell {
 }
 
 .cell-buyable:hover {
-  background: #fff;
+  background: #d6f0c2;
   outline: 2px solid #4a9a4a;
   outline-offset: -2px;
 }
@@ -248,17 +261,27 @@ button.cell {
   margin-left: 0;
 }
 
+.legend.cell-lot {
+  background: #a8d08d;
+}
+
+.legend.cell-mine {
+  background: #e04848;
+}
+
+.legend.cell-owned {
+  background: #e6a23c;
+}
+
 .cell-facility {
-  background: #fff;
-  color: #3a3a6a;
+  background: #fdf6e3;
   text-decoration: none;
-  outline: 1px solid #3a3a6a;
-  outline-offset: -2px;
 }
 
 .cell-facility:hover {
-  background: #3a3a6a;
-  color: #fff;
+  background: #ffe58a;
+  outline: 2px solid #c98a1b;
+  outline-offset: -2px;
 }
 
 .note {
