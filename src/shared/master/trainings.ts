@@ -1,6 +1,5 @@
 import type { Abilities } from '../abilities';
-import { describeGain } from './effects';
-import { formatKg } from '../weight';
+import type { ConsumableEffect } from './effects';
 
 // ジムの種目・学校の授業。gain はコンディションが良いとき（80以上）の上昇量
 // ジムは身体パワー、学校は頭脳パワーを消費する
@@ -40,9 +39,7 @@ export function findTraining(id: string): Training | undefined {
   return TRAININGS.find((t) => t.id === id);
 }
 
-export function describeTraining(t: Training): string {
-  const parts = [describeGain(t.gain)];
-  if (t.condition) parts.push(`コンディション ${t.condition > 0 ? '+' : ''}${t.condition}`);
-  if (t.weight) parts.push(`体重 ${t.weight > 0 ? '+' : '-'}${formatKg(Math.abs(t.weight))}`);
-  return parts.join(' / ');
+// 種目・授業の効果（アイテムと同じ形にして、表示を共通化する）
+export function trainingEffect(t: Training): ConsumableEffect {
+  return { condition: t.condition, weight: t.weight, gain: t.gain };
 }

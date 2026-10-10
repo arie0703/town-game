@@ -1,4 +1,5 @@
-import { compareItems, describeItem, findItem, ITEM_TYPE_LABEL, type Item } from '../../shared/master/items';
+import { compareItems, findItem, ITEM_TYPE_LABEL, type Item } from '../../shared/master/items';
+import { abilityEffectHtml, conditionEffectHtml } from '../components/effect';
 import type { InventoryItem } from '../../shared/types';
 import { api } from '../api';
 import { requireLogin } from '../auth';
@@ -21,7 +22,8 @@ export async function renderItems(root: HTMLElement): Promise<void> {
         <tr>
           <td>${ITEM_TYPE_LABEL[item.effect.type]}</td>
           <td>${item.name}</td>
-          <td>${describeItem(item)}</td>
+          <td>${conditionEffectHtml(item.effect)}</td>
+          <td>${abilityEffectHtml(item.effect)}</td>
           <td>${quantity}</td>
           <td><button type="button" data-use="${item.id}">使う</button></td>
         </tr>
@@ -38,7 +40,7 @@ export async function renderItems(root: HTMLElement): Promise<void> {
         inventory.length === 0
           ? '<p>アイテムを持っていません。<a href="#/facility/shop">お店</a>で買いましょう。</p>'
           : `<table class="table list">
-              <thead><tr><th>種類</th><th>アイテム</th><th>効果</th><th>個数</th><th></th></tr></thead>
+              <thead><tr><th>種類</th><th>アイテム</th><th>体調</th><th>能力</th><th>個数</th><th></th></tr></thead>
               <tbody>${rows}</tbody>
             </table>`
       }

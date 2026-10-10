@@ -472,3 +472,60 @@ select {
   font-weight: normal;
   color: #666;
 }
+
+/* 効果の表示: 回復 / 体 / 能力 の行ごとに、増減を色付きのチップで並べる */
+.effect-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+}
+
+.effect-row + .effect-row {
+  margin-top: 3px;
+}
+
+.chip {
+  display: inline-block;
+  padding: 0 6px;
+  border: 1px solid;
+  border-radius: 3px;
+  font-size: 12px;
+  line-height: 1.6;
+  white-space: nowrap;
+}
+
+.chip-plus {
+  color: #1e6b34;
+  background: #e8f5ec;
+  border-color: #9fd3ae;
+}
+
+.chip-minus {
+  color: #b00020;
+  background: #fdecee;
+  border-color: #f0a5ae;
+}
+
+.chip-neutral {
+  color: #555;
+  background: #f1f1f1;
+  border-color: #cfcfcf;
+}
+
+.facility-blackmarket .chip-plus {
+  color: #86efac;
+  background: #14301f;
+  border-color: #2f6b45;
+}
+
+.facility-blackmarket .chip-minus {
+  color: #fda4af;
+  background: #3a1520;
+  border-color: #7a2d3f;
+}
+
+.facility-blackmarket .chip-neutral {
+  color: #d4c4e6;
+  background: #2f2445;
+  border-color: #5b4a78;
+}

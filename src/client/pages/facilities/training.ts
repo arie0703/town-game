@@ -1,4 +1,5 @@
-import { describeTraining, TRAININGS, type Training } from '../../../shared/master/trainings';
+import { trainingEffect, TRAININGS, type Training } from '../../../shared/master/trainings';
+import { abilityEffectHtml, conditionEffectHtml } from '../../components/effect';
 import type { Me } from '../../../shared/types';
 import { yen } from '../../format';
 import { postAction } from '../../layout';
@@ -11,7 +12,8 @@ function renderTrainings(container: HTMLElement, me: Me, rerender: () => Promise
       (t) => `
         <tr>
           <td>${t.name}</td>
-          <td>${describeTraining(t)}</td>
+          <td>${conditionEffectHtml(trainingEffect(t))}</td>
+          <td>${abilityEffectHtml(trainingEffect(t))}</td>
           <td class="nowrap">${isGym ? '身体' : '頭脳'}パワー ${t.powerCost} / ${yen(t.fee)}</td>
           <td><button type="button" data-training="${t.id}">${isGym ? 'やる' : '受ける'}</button></td>
         </tr>
@@ -23,7 +25,7 @@ function renderTrainings(container: HTMLElement, me: Me, rerender: () => Promise
     <p>${isGym ? '身体' : '頭脳'}パワー: ${power.current} / ${power.max}　持ち金: ${yen(me.money)}　コンディション: ${me.condition} / 100</p>
     <p class="note">能力の上昇量はコンディションが 80 以上のときの値。コンディションが下がると上昇量も減る。</p>
     <table class="table list">
-      <thead><tr><th>${isGym ? '種目' : '授業'}</th><th>効果</th><th>消費</th><th></th></tr></thead>
+      <thead><tr><th>${isGym ? '種目' : '授業'}</th><th>体調</th><th>能力</th><th>消費</th><th></th></tr></thead>
       <tbody>${rows}</tbody>
     </table>
   `;
