@@ -2,6 +2,7 @@ import { Hono } from 'hono';
 import { ABILITIES, type Abilities } from '../../shared/abilities';
 import { goodnessRank } from '../../shared/goodness';
 import { jobLevel, jobName } from '../../shared/master/jobs';
+import { isStateId, stateLabel, STATES } from '../../shared/master/states';
 import type { EventItem, Me, UserRef } from '../../shared/types';
 import { clearLoginCookie, requireAuth, type AuthEnv } from '../auth';
 import { gToKg } from '../../shared/weight';
@@ -29,6 +30,8 @@ export async function loadMe(userId: number): Promise<Me | null> {
     .where('job_id', '=', user.job_id)
     .executeTakeFirst();
 
+  const stateRows = await db.selectFrom('user_states').select(['state_id', 'level']).where('user_id', '=', userId).execute();
+
   return {
     id: user.id,
     name: user.name,
@@ -37,6 +40,12 @@ export async function loadMe(userId: number): Promise<Me | null> {
     // 総資産 = 持ち金 + 預金 + 所有物件（土地 + 建物）の評価額
     totalAssets: user.money + user.deposit + (await landValueOf(db, user.id)),
     goodness: { value: user.goodness, rank: goodnessRank(user.goodness) },
+    states: stateRows
+      .filter((r) => isStateId(r.state_id))
+      .map((r) => {
+        const state = { id: r.state_id, level: r.level };
+        return { ...state, label: stateLabel(state), tone: STATES[r.state_id].tone };
+      }),
     job: { id: user.job_id, name: jobName(user.job_id), level: jobLevel(jobExp?.exp ?? 0) },
     bodyPower: { current: user.body_power, max: powers.body },
     brainPower: { current: user.brain_power, max: powers.brain },

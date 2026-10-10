@@ -47,6 +47,7 @@ assets/
 - `realestate`: 不動産屋
 - `bank`: 銀行
 - `blackmarket`: 闇市場
+- `hideout`: 裏組織のアジト
 - `izakaya`: 居酒屋
 - `townhall`: 役場
 - `house`: 購入済みの土地に建つ一軒家
@@ -61,7 +62,7 @@ assets/
 - `npc_shop`: お店の店主 / `npc_job`: 職業安定所の相談員 / `npc_school`: 学校の先生
 - `npc_gym`: ジムのトレーナー / `npc_cafeteria`: 食堂のおばちゃん / `npc_casino`: 賭場の壺振り師
 - `npc_realestate`: 不動産屋の社長 / `npc_townhall`: 役場の職員 / `npc_izakaya`: 居酒屋の大将
-- `npc_bank`: 銀行の行員 / `npc_blackmarket`: 闇の商人
+- `npc_bank`: 銀行の行員 / `npc_blackmarket`: 闇の商人 / `npc_hideout`: 裏組織の組長代理
 - `npc_soup`: 炊き出しおじさん
 
 注意:

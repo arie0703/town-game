@@ -4,6 +4,7 @@ import { WORK } from '../../shared/config';
 import { yen } from '../../shared/format';
 import { goodnessRank } from '../../shared/goodness';
 import { formatKg } from '../../shared/weight';
+import { GANG } from '../../shared/master/gang';
 import { findJob, jobLevel, type Job } from '../../shared/master/jobs';
 import type { Player } from './player';
 import { bmi, categoryTotal } from './status';
@@ -45,6 +46,10 @@ function requirementChecks(job: Job, { player, totalAssets }: JobContext): Array
   }
   if (r.goodnessMin !== undefined) {
     checks.push({ label: `善悪 ${goodnessRank(r.goodnessMin)}以上`, met: user.goodness >= r.goodnessMin });
+  }
+  // 裏組織に所属している間は就けない職業（所属していない住民には条件を見せない）
+  if (GANG.bannedJobs.includes(job.id) && player.states.some((s) => s.id === 'gang')) {
+    checks.push({ label: '裏組織から足を洗っている', met: false });
   }
   if (r.bmiRange) {
     const [min, max] = r.bmiRange;

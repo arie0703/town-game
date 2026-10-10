@@ -16,6 +16,7 @@ import { meRoutes } from './routes/me';
 import { realestateRoutes } from './routes/realestate';
 import { residentRoutes } from './routes/residents';
 import { townhallRoutes } from './routes/townhall';
+import { hideoutRoutes } from './routes/hideout';
 import { trainingRoutes } from './routes/training';
 
 const app = new Hono().basePath('/api');
@@ -35,6 +36,7 @@ app.route('/', realestateRoutes);
 app.route('/', loveRoutes);
 app.route('/', residentRoutes);
 app.route('/', townhallRoutes);
+app.route('/', hideoutRoutes);
 app.route('/', bankRoutes);
 
 app.onError((err, c) => {

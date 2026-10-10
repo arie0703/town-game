@@ -1,6 +1,7 @@
 import type { Me, ResidentView } from '../../../shared/types';
 import { api } from '../../api';
 import { GOODNESS } from '../../../shared/goodness';
+import { isBlocked } from '../../../shared/master/states';
 import { yen } from '../../format';
 import { escapeHtml } from '../../html';
 import { postAction } from '../../layout';
@@ -29,6 +30,9 @@ export async function renderTownhall(container: HTMLElement, me: Me, rerender: (
     .join('');
 
   const maxDonation = Math.floor(me.money / GOODNESS.donationUnit) * GOODNESS.donationUnit;
+  // 状態（裏組織所属など）で使えないときは、ボタンを押せなくする（理由は職員のセリフで伝える）
+  const donateBlocked = isBlocked(me.states, 'donate');
+  const volunteerBlocked = isBlocked(me.states, 'volunteer');
   container.innerHTML = `
     <p>あなたの善悪: <strong>${me.goodness.rank}（${me.goodness.value}）</strong></p>
     <div class="columns">
@@ -36,12 +40,12 @@ export async function renderTownhall(container: HTMLElement, me: Me, rerender: (
         <h3>寄付する</h3>
         <p class="note">${yen(GOODNESS.donationUnit)}ごとに善悪 +1</p>
         <label>金額 <input type="number" name="amount" min="${GOODNESS.donationUnit}" step="${GOODNESS.donationUnit}" max="${maxDonation}" value="${GOODNESS.donationUnit}" required /></label>
-        <button type="submit"${maxDonation === 0 ? ' disabled' : ''}>寄付する</button>
+        <button type="submit"${maxDonation === 0 || donateBlocked ? ' disabled' : ''}>寄付する</button>
       </form>
       <div class="box">
         <h3>ボランティア</h3>
         <p class="note">町のゴミ拾い。身体パワー ${GOODNESS.volunteerPowerCost} と満腹度 ${GOODNESS.volunteerFullnessCost} を使って善悪 +${GOODNESS.volunteerGain}</p>
-        <button type="button" id="volunteer">参加する</button>
+        <button type="button" id="volunteer"${volunteerBlocked ? ' disabled' : ''}>参加する</button>
       </div>
     </div>
     <p>住民数: ${residents.length}人（総資産 = 持ち金 + 預金 + 所有物件の評価額）</p>

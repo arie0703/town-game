@@ -43,6 +43,7 @@ export function mergeChange(player: Player, change: PlayerChange): Player {
     items: { ...player.items, ...change.items },
     jobExp: { ...player.jobExp, ...change.jobExp },
     lands: player.lands,
+    states: player.states,
   };
 }
 

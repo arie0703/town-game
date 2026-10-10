@@ -1,5 +1,6 @@
 import type { Abilities } from './abilities';
 import type { GoodnessRank } from './goodness';
+import type { StateDef, UserState } from './master/states';
 import type { BuildingType, StoreKind } from './master/buildings';
 import type { MapCell } from './master/map';
 
@@ -15,6 +16,7 @@ export type Me = {
   deposit: number;
   totalAssets: number;
   goodness: { value: number; rank: GoodnessRank }; // 善悪（-100〜100）とランク
+  states: Array<UserState & { label: string; tone: StateDef['tone'] }>; // 状態（ラベル表示用）
   job: { id: string; name: string; level: number }; // level: 今の職業の職業レベル
   bodyPower: Gauge;
   brainPower: Gauge;

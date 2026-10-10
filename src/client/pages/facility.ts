@@ -1,5 +1,6 @@
 import { findFacility, type FacilityId } from '../../shared/master/facilities';
 import { FACILITY_NPC } from '../../shared/master/npcs';
+import { stateNpcLine } from '../../shared/master/states';
 import { npcHtml } from '../components/npc';
 import type { Me } from '../../shared/types';
 import { requireLogin } from '../auth';
@@ -7,6 +8,7 @@ import { renderLayout } from '../layout';
 import { renderBank } from './facilities/bank';
 import { renderCafeteria } from './facilities/cafeteria';
 import { renderCasino } from './facilities/casino';
+import { renderHideout } from './facilities/hideout';
 import { renderIzakaya } from './facilities/izakaya';
 import { renderJobCenter } from './facilities/job';
 import { renderRealestate } from './facilities/realestate';
@@ -29,6 +31,7 @@ const BODIES: Record<FacilityId, FacilityBody> = {
   realestate: renderRealestate,
   bank: renderBank,
   blackmarket: renderBlackmarket,
+  hideout: renderHideout,
   townhall: renderTownhall,
 };
 
@@ -46,7 +49,7 @@ export async function renderFacility(root: HTMLElement, params: Record<string, s
     <section class="box facility facility-${facility.id}">
       <h2>${facility.name}</h2>
       <p>${facility.description}</p>
-      ${npcHtml(FACILITY_NPC[facility.id])}
+      ${npcHtml(FACILITY_NPC[facility.id], stateNpcLine(me.states, facility.id))}
       <div id="facility-body"></div>
       <p><a href="#/home">← 町に戻る</a></p>
     </section>

@@ -42,6 +42,10 @@ export const NPCS = {
     name: '闇の商人',
     lines: ['....'],
   },
+  npc_hideout: {
+    name: '組長代理',
+    lines: ['……何の用だ', '堅気が来る場所じゃねえぞ', 'シノギは足で稼ぐもんだ', '上納金、忘れんなよ'],
+  },
   npc_izakaya: {
     name: '居酒屋の大将',
     lines: ['へいらっしゃい！', 'とりあえず生でいいかい？', '飲みすぎは明日の自分が困るぜ', '〆のラーメンは別腹だろ？'],
@@ -64,6 +68,7 @@ export const FACILITY_NPC: Record<FacilityId, NpcId> = {
   realestate: 'npc_realestate',
   bank: 'npc_bank',
   blackmarket: 'npc_blackmarket',
+  hideout: 'npc_hideout',
   izakaya: 'npc_izakaya',
   townhall: 'npc_townhall',
 };

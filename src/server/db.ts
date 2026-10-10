@@ -2,6 +2,8 @@ import Database from 'better-sqlite3';
 import { Kysely, SqliteDialect, type Generated } from 'kysely';
 import { ABILITIES, type AbilityKey } from '../shared/abilities';
 import type { BuildingType, StoreKind } from '../shared/master/buildings';
+import { MAP_CELLS } from '../shared/master/map';
+import type { StateId } from '../shared/master/states';
 import { JOBS } from '../shared/master/jobs';
 
 export interface UsersTable {
@@ -65,6 +67,14 @@ export interface UserJobExpTable {
   exp: number;
 }
 
+// 住民に付いている状態（level: 裏組織の階級などの段階）
+export interface UserStatesTable {
+  user_id: number;
+  state_id: StateId;
+  level: number;
+  created_at: string;
+}
+
 export interface DB {
   users: UsersTable;
   lands: LandsTable;
@@ -73,6 +83,7 @@ export interface DB {
   events: EventsTable;
   user_items: UserItemsTable;
   user_job_exp: UserJobExpTable;
+  user_states: UserStatesTable;
 }
 
 const dbPath = process.env.DB_PATH ?? 'town.sqlite';
@@ -185,6 +196,16 @@ export async function initDb(): Promise<void> {
     .execute();
 
   await db.schema
+    .createTable('user_states')
+    .ifNotExists()
+    .addColumn('user_id', 'integer', (col) => col.notNull().references('users.id'))
+    .addColumn('state_id', 'text', (col) => col.notNull())
+    .addColumn('level', 'integer', (col) => col.notNull().defaultTo(0))
+    .addColumn('created_at', 'text', (col) => col.notNull())
+    .addPrimaryKeyConstraint('user_states_pk', ['user_id', 'state_id'])
+    .execute();
+
+  await db.schema
     .createIndex('events_user_id_idx')
     .ifNotExists()
     .on('events')
@@ -201,4 +222,16 @@ export async function initDb(): Promise<void> {
     .set({ job_id: 'none' })
     .where('job_id', 'not in', JOBS.map((j) => j.id))
     .execute();
+
+  // マップの変更で空き地でなくなった場所の土地は、購入額を返金して手放させる
+  const lotIds = MAP_CELLS.filter((c) => c.type === 'lot').map((c) => c.id);
+  const lost = await db.selectFrom('lands').selectAll().where('cell_id', 'not in', lotIds).execute();
+  for (const land of lost) {
+    await db
+      .updateTable('users')
+      .set((eb) => ({ money: eb('money', '+', land.purchased_price) }))
+      .where('id', '=', land.owner_id)
+      .execute();
+    await db.deleteFrom('lands').where('cell_id', '=', land.cell_id).execute();
+  }
 }

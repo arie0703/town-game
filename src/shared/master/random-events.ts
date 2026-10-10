@@ -14,7 +14,8 @@ export type ActionKind =
   | 'cafeteria'
   | 'izakaya'
   | 'blackmarket'
-  | 'fight';
+  | 'fight'
+  | 'shinogi';
 
 // 行動の結果のうち、イベントの条件・効果に使う値（行動ごとに必要なものだけ入る）
 export type EventContext = {

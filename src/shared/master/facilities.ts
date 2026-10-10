@@ -10,6 +10,7 @@ export const FACILITIES = [
   { id: 'bank', name: '銀行', description: 'お金を預けたり引き出したりできる。預けたお金はストリートファイトで負けても減らない。' },
   { id: 'blackmarket', name: '闇市場', description: '路地裏の怪しい露店。体を大きく変える薬や、高価な品を扱っている。' },
   { id: 'izakaya', name: '居酒屋', description: 'お酒と料理を楽しめる。飲みすぎ注意。' },
+  { id: 'hideout', name: '裏組織のアジト', description: '路地の奥にある古びた事務所。' },
   { id: 'townhall', name: '役場', description: '町の住民一覧（総資産ランキング）を見られる。寄付やボランティアで善行を積める。' },
 ] as const;
 

@@ -2,6 +2,7 @@ import type { Kysely, Selectable, Updateable } from 'kysely';
 import { ABILITIES, type Abilities } from '../../shared/abilities';
 import { LIMITS } from '../../shared/config';
 import type { ActionKind, EventContext } from '../../shared/master/random-events';
+import { isStateId, STATES, type ActionId, type StateId, type UserState } from '../../shared/master/states';
 import type { ActionEvent, ActionResult } from '../../shared/types';
 import { db, type DB, type LandsTable, type UsersTable } from '../db';
 import { addEvent } from '../events';
@@ -16,6 +17,7 @@ export type Player = {
   items: Record<string, number>;
   jobExp: Record<string, number>;
   lands: Array<Pick<Selectable<LandsTable>, 'cell_id' | 'building' | 'store_kind'>>;
+  states: UserState[];
 };
 
 export type PlayerChange = {
@@ -28,7 +30,19 @@ export type PlayerChange = {
   message: string;
   // ランダムイベントの条件・効果に使う行動の結果（稼いだ額など）
   context?: EventContext;
+  // 状態の付け外し（set: 付ける・段階を変える、remove: 外す）
+  states?: { set?: UserState[]; remove?: StateId[] };
 };
+
+// 状態で制限されている行動なら断る
+export function assertAllowed(player: Player, action: ActionId): void {
+  const blocking = player.states.find((s) => STATES[s.id].blocks.includes(action));
+  if (blocking) throw new GameError(STATES[blocking.id].blockMessage);
+}
+
+export function stateOf(player: Player, id: StateId): UserState | undefined {
+  return player.states.find((s) => s.id === id);
+}
 
 // 能力値を加算する（0 未満にはしない。上限が設定されていれば頭打ち）
 export function addAbilities(base: Abilities, gain: Partial<Abilities>): Partial<Abilities> {
@@ -59,7 +73,14 @@ export async function loadPlayer(executor: Kysely<DB>, userId: number): Promise<
     .where('owner_id', '=', userId)
     .orderBy('cell_id')
     .execute();
-  return { user, abilities, items, jobExp, lands };
+  const stateRows = await executor
+    .selectFrom('user_states')
+    .select(['state_id', 'level'])
+    .where('user_id', '=', userId)
+    .execute();
+  // マスタから消した状態は無視する
+  const states = stateRows.filter((r) => isStateId(r.state_id)).map((r) => ({ id: r.state_id, level: r.level }));
+  return { user, abilities, items, jobExp, lands, states };
 }
 
 // アクション共通処理: 読み込み → 計算（fn）→ ランダムイベント・物件の収入 → 書き戻し → 出来事ログ を1トランザクションで行う
@@ -101,6 +122,16 @@ export async function runAction(
         .insertInto('user_job_exp')
         .values({ user_id: userId, job_id: jobId, exp })
         .onConflict((oc) => oc.columns(['user_id', 'job_id']).doUpdateSet({ exp }))
+        .execute();
+    }
+    for (const id of change.states?.remove ?? []) {
+      await trx.deleteFrom('user_states').where('user_id', '=', userId).where('state_id', '=', id).execute();
+    }
+    for (const { id, level } of change.states?.set ?? []) {
+      await trx
+        .insertInto('user_states')
+        .values({ user_id: userId, state_id: id, level, created_at: new Date().toISOString() })
+        .onConflict((oc) => oc.columns(['user_id', 'state_id']).doUpdateSet({ level }))
         .execute();
     }
     await addEvent(trx, userId, [change.message, ...events.map((e) => `★${e.text}`)].join(' '));
