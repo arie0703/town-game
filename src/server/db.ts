@@ -1,6 +1,7 @@
 import Database from 'better-sqlite3';
 import { Kysely, SqliteDialect, type Generated } from 'kysely';
 import { ABILITIES, type AbilityKey } from '../shared/abilities';
+import type { BuildingType, StoreKind } from '../shared/master/buildings';
 import { JOBS } from '../shared/master/jobs';
 
 export interface UsersTable {
@@ -41,6 +42,8 @@ export interface LandsTable {
   cell_id: number;
   owner_id: number;
   purchased_price: number;
+  building: BuildingType; // 建物の種類
+  store_kind: StoreKind | null; // 店舗の業種（店舗以外は null）
 }
 
 export type RelationshipType = 'date' | 'propose';
@@ -142,7 +145,16 @@ export async function initDb(): Promise<void> {
     .addColumn('cell_id', 'integer', (col) => col.primaryKey())
     .addColumn('owner_id', 'integer', (col) => col.notNull().references('users.id'))
     .addColumn('purchased_price', 'integer', (col) => col.notNull())
+    .addColumn('building', 'text', (col) => col.notNull().defaultTo('house'))
+    .addColumn('store_kind', 'text')
     .execute();
+
+  // 後から追加した列: 既存の土地は一軒家として扱う
+  const landsTable = (await db.introspection.getTables()).find((t) => t.name === 'lands');
+  if (landsTable && !landsTable.columns.some((col) => col.name === 'building')) {
+    await db.schema.alterTable('lands').addColumn('building', 'text', (col) => col.notNull().defaultTo('house')).execute();
+    await db.schema.alterTable('lands').addColumn('store_kind', 'text').execute();
+  }
 
   await db.schema
     .createTable('relationship_requests')

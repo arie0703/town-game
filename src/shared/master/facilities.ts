@@ -6,7 +6,7 @@ export const FACILITIES = [
   { id: 'gym', name: 'トレーニングジム', description: 'トレーニングで身体の能力を上げる。' },
   { id: 'cafeteria', name: '食堂', description: 'その場で食事ができる。' },
   { id: 'casino', name: '賭場', description: '丁半で一攫千金を狙う。' },
-  { id: 'realestate', name: '不動産屋', description: '空き地を購入できる。' },
+  { id: 'realestate', name: '不動産屋', description: '土地を買って一軒家・マンション・店舗を建てられる。売却もできる。' },
   { id: 'bank', name: '銀行', description: 'お金を預けたり引き出したりできる。預けたお金はストリートファイトで負けても減らない。' },
   { id: 'blackmarket', name: '闇市場', description: '路地裏の怪しい露店。体を大きく変える薬や、高価な品を扱っている。' },
   { id: 'izakaya', name: '居酒屋', description: 'お酒と料理を楽しめる。飲みすぎ注意。' },

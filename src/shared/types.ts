@@ -1,4 +1,5 @@
 import type { Abilities } from './abilities';
+import type { BuildingType, StoreKind } from './master/buildings';
 import type { MapCell } from './master/map';
 
 export type UserRef = { id: number; name: string };
@@ -32,15 +33,20 @@ export type Me = {
 export type EventItem = { id: number; message: string; createdAt: string };
 
 // GET /api/map のレスポンス要素。空き地には所有者（未購入なら null）が付く
+// 土地: 所有者がいれば owner と建物（building / storeKind）が入る
 export type MapCellView =
   | Exclude<MapCell, { type: 'lot' }>
-  | (Extract<MapCell, { type: 'lot' }> & { owner: UserRef | null });
+  | (Extract<MapCell, { type: 'lot' }> & {
+      owner: UserRef | null;
+      building: BuildingType | null;
+      storeKind: StoreKind | null;
+    });
 
 // アクション系 API の共通レスポンス
-// 行動中に起きたランダムイベント（tone: 良い / 悪い出来事）
+// 行動中に起きた出来事（ランダムイベント・物件の収入。tone: 良い / 悪い出来事）
 export type ActionEvent = { text: string; tone: 'good' | 'bad' };
 
-export type ActionResult = { message: string; event?: ActionEvent };
+export type ActionResult = { message: string; events?: ActionEvent[] };
 
 // GET /api/jobs のレスポンス要素
 export type JobView = {

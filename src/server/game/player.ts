@@ -2,18 +2,20 @@ import type { Kysely, Selectable, Updateable } from 'kysely';
 import { ABILITIES, type Abilities } from '../../shared/abilities';
 import { LIMITS } from '../../shared/config';
 import type { ActionKind, EventContext } from '../../shared/master/random-events';
-import type { ActionResult } from '../../shared/types';
-import { db, type DB, type UsersTable } from '../db';
+import type { ActionEvent, ActionResult } from '../../shared/types';
+import { db, type DB, type LandsTable, type UsersTable } from '../db';
 import { addEvent } from '../events';
 import { GameError } from './errors';
+import { rollPropertyIncome } from './property-income';
 import { rollRandomEvent } from './random-events';
 
-// items: 所持アイテム（itemId → 個数）、jobExp: 職業ごとの経験値（jobId → 経験値）
+// items: 所持アイテム（itemId → 個数）、jobExp: 職業ごとの経験値（jobId → 経験値）、lands: 所有している物件
 export type Player = {
   user: Selectable<UsersTable>;
   abilities: Abilities;
   items: Record<string, number>;
   jobExp: Record<string, number>;
+  lands: Array<Pick<Selectable<LandsTable>, 'cell_id' | 'building' | 'store_kind'>>;
 };
 
 export type PlayerChange = {
@@ -51,11 +53,17 @@ export async function loadPlayer(executor: Kysely<DB>, userId: number): Promise<
   const items = Object.fromEntries(itemRows.map((r) => [r.item_id, r.quantity]));
   const expRows = await executor.selectFrom('user_job_exp').select(['job_id', 'exp']).where('user_id', '=', userId).execute();
   const jobExp = Object.fromEntries(expRows.map((r) => [r.job_id, r.exp]));
-  return { user, abilities, items, jobExp };
+  const lands = await executor
+    .selectFrom('lands')
+    .select(['cell_id', 'building', 'store_kind'])
+    .where('owner_id', '=', userId)
+    .orderBy('cell_id')
+    .execute();
+  return { user, abilities, items, jobExp, lands };
 }
 
-// アクション共通処理: 読み込み → 計算（fn）→ ランダムイベント → 書き戻し → 出来事ログ を1トランザクションで行う
-//   kind: ランダムイベントの対象の行動の種類（省略するとイベントは起きない）
+// アクション共通処理: 読み込み → 計算（fn）→ ランダムイベント・物件の収入 → 書き戻し → 出来事ログ を1トランザクションで行う
+//   kind: ランダムイベント・物件の収入の対象の行動の種類（省略すると起きない）
 export async function runAction(
   userId: number,
   fn: (player: Player) => PlayerChange,
@@ -63,8 +71,14 @@ export async function runAction(
 ): Promise<ActionResult> {
   return db.transaction().execute(async (trx) => {
     const player = await loadPlayer(trx, userId);
-    const base = fn(player);
-    const { change, event } = kind ? rollRandomEvent(kind, player, base) : { change: base, event: null };
+    let change = fn(player);
+    const events: ActionEvent[] = [];
+    if (kind) {
+      const random = rollRandomEvent(kind, player, change);
+      const income = rollPropertyIncome(player, random.change);
+      change = income.change;
+      events.push(...random.events, ...income.events);
+    }
     if (change.user && Object.keys(change.user).length > 0) {
       await trx.updateTable('users').set(change.user).where('id', '=', userId).execute();
     }
@@ -89,7 +103,7 @@ export async function runAction(
         .onConflict((oc) => oc.columns(['user_id', 'job_id']).doUpdateSet({ exp }))
         .execute();
     }
-    await addEvent(trx, userId, event ? `${change.message} ★${event.text}` : change.message);
-    return event ? { message: change.message, event } : { message: change.message };
+    await addEvent(trx, userId, [change.message, ...events.map((e) => `★${e.text}`)].join(' '));
+    return events.length > 0 ? { message: change.message, events } : { message: change.message };
   });
 }

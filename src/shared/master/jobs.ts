@@ -111,3 +111,17 @@ export function jobLevel(exp: number): number {
 export function nextLevelExp(exp: number): number | null {
   return JOB_LEVEL.expThresholds.find((t) => t > exp) ?? null;
 }
+
+// 職業の系統（下位職 → 上位職）
+export const JOB_LINES = {
+  parttime: ['parttime', 'part_leader', 'store_manager'],
+  teacher: ['teacher', 'vice_principal', 'principal'],
+  programmer: ['programmer', 'senior_engineer', 'cto'],
+  trainer: ['fitness_trainer', 'personal_trainer', 'gym_owner'],
+  model: ['model', 'popular_model', 'top_model'],
+  comedian: ['comedian', 'popular_comedian', 'grand_master'],
+  sumo: ['sumo_trainee', 'makushita', 'yokozuna'],
+  mma: ['mma_trainee', 'mma_fighter', 'mma_champion'],
+  curry: ['curry_shop', 'curry_chef', 'curry_master'],
+  bar: ['bar_trainee', 'bartender', 'master_bartender'],
+} as const;

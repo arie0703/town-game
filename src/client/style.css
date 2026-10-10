@@ -295,6 +295,11 @@ button.cell {
   margin-top: 12px;
 }
 
+/* 横に並べた枠は上下の余白をそろえる */
+.columns > .box + .box {
+  margin-top: 0;
+}
+
 /* フラッシュメッセージ */
 .flash {
   border: 1px solid var(--border);

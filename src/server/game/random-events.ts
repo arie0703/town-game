@@ -35,18 +35,23 @@ function drawEvent(kind: ActionKind, state: EventState, ctx: EventContext): Rand
 }
 
 // 行動の変更内容を反映した後の Player
-function mergeChange(player: Player, change: PlayerChange): Player {
+export function mergeChange(player: Player, change: PlayerChange): Player {
   return {
     user: { ...player.user, ...change.user } as Player['user'],
     abilities: { ...player.abilities, ...change.abilities },
     items: { ...player.items, ...change.items },
     jobExp: { ...player.jobExp, ...change.jobExp },
+    lands: player.lands,
   };
 }
 
 // 行動の変更内容にイベントの効果を重ねる。値は 0 未満・上限超えにならないよう丸め、
 // 説明には実際に反映された量を使う（例: 持ち金 50円 で -100円 → -50円）
-function applyEventEffect(player: Player, change: PlayerChange, effect: EventEffect): { change: PlayerChange; applied: EventEffect } {
+export function applyEventEffect(
+  player: Player,
+  change: PlayerChange,
+  effect: EventEffect,
+): { change: PlayerChange; applied: EventEffect } {
   const { user, abilities, items, jobExp } = mergeChange(player, change);
   const gained = addAbilities(abilities, effect.gain ?? {});
   const max = maxPowers({ ...abilities, ...gained } as Abilities);
@@ -108,15 +113,15 @@ export function rollRandomEvent(
   kind: ActionKind,
   player: Player,
   change: PlayerChange,
-): { change: PlayerChange; event: ActionEvent | null } {
+): { change: PlayerChange; events: ActionEvent[] } {
   const merged = mergeChange(player, change);
   const ctx = change.context ?? {};
   const event = drawEvent(kind, { money: merged.user.money, jobId: merged.user.job_id, items: merged.items }, ctx);
-  if (!event) return { change, event: null };
+  if (!event) return { change, events: [] };
 
   const effect = typeof event.effect === 'function' ? event.effect({ money: merged.user.money, jobId: merged.user.job_id, items: merged.items }, ctx) : event.effect;
   const result = applyEventEffect(player, change, effect);
   const detail = describeEventEffect(result.applied);
   const text = detail ? `${event.text}（${detail}）` : event.text;
-  return { change: result.change, event: { text, tone: event.tone } };
+  return { change: result.change, events: [{ text, tone: event.tone }] };
 }

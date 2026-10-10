@@ -72,6 +72,7 @@ src/
 - `src/shared/master/items.ts`: お店のアイテムの価格・効果
 - `src/shared/master/menus.ts`: 食堂のメニューの価格・効果
 - `src/shared/master/map.ts`: マップの配置と土地の価格
+- `src/shared/master/buildings.ts`: 不動産の建物の建築費・家賃と売上・所有の上限
 - `src/shared/master/random-events.ts`: ランダムイベントの内容・重み・発生条件（発生確率は `config.ts` の `RANDOM_EVENT`）
 
 ## マップのアイコン

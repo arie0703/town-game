@@ -2,28 +2,28 @@ import type { ActionEvent, ActionResult, Me } from '../shared/types';
 import { api, ApiError } from './api';
 import { escapeHtml } from './html';
 
-type Flash = { message: string; kind: 'info' | 'error'; event?: ActionEvent };
+type Flash = { message: string; kind: 'info' | 'error'; events?: ActionEvent[] };
 
 let flash: Flash | null = null;
 
 // 次に描画する画面の上部にメッセージを出す
-export function setFlash(message: string, kind: Flash['kind'] = 'info', event?: ActionEvent): void {
-  flash = { message, kind, event };
+export function setFlash(message: string, kind: Flash['kind'] = 'info', events?: ActionEvent[]): void {
+  flash = { message, kind, events };
 }
 
-// ランダムイベントは行動の結果の下に別の行で目立たせる
-function flashHtml({ message, kind, event }: Flash): string {
-  const eventLine = event
-    ? `<span class="flash-event flash-event-${event.tone}">★ ${escapeHtml(event.text)}</span>`
-    : '';
-  return `<p class="flash flash-${kind}">${escapeHtml(message)}${eventLine}</p>`;
+// ランダムイベント・物件の収入は、行動の結果の下に1件ずつ別の行で目立たせる
+function flashHtml({ message, kind, events = [] }: Flash): string {
+  const eventLines = events
+    .map((e) => `<span class="flash-event flash-event-${e.tone}">★ ${escapeHtml(e.text)}</span>`)
+    .join('');
+  return `<p class="flash flash-${kind}">${escapeHtml(message)}${eventLines}</p>`;
 }
 
 // アクション API を呼び、結果をフラッシュに積んでから画面を描き直す
 export async function postAction(path: string, body: unknown, rerender: () => Promise<void>): Promise<void> {
   try {
     const result = await api.post<ActionResult>(path, body);
-    setFlash(result.message, 'info', result.event);
+    setFlash(result.message, 'info', result.events);
   } catch (e) {
     setFlash(e instanceof ApiError ? e.message : '通信エラーが発生しました', 'error');
   }

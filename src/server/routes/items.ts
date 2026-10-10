@@ -97,9 +97,10 @@ itemRoutes.post('/eat', requireAuth, async (c) => {
 
 // 炊き出し（持ち金がちょうど 0円 のときだけ）
 itemRoutes.post('/cafeteria/soup', requireAuth, async (c) => {
-  const result = await runAction(c.get('userId'), ({ user }) => {
+  const result = await runAction(c.get('userId'), ({ user, lands }) => {
     if (user.money !== 0) throw new GameError('炊き出しは一文無しの方限定です');
     if (user.deposit > 0) throw new GameError('銀行に預金がある方は炊き出しを利用できません');
+    if (lands.length > 0) throw new GameError('不動産をお持ちの方は炊き出しを利用できません');
     assertNotFull(user.fullness);
     return {
       user: {

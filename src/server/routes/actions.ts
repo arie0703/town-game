@@ -1,5 +1,6 @@
 import { Hono } from 'hono';
 import { LIMITS, REST } from '../../shared/config';
+import { REALESTATE } from '../../shared/master/buildings';
 import { yen } from '../../shared/format';
 import { findJob, jobDepth, jobLevel, jobName, JOBS, nextLevelExp } from '../../shared/master/jobs';
 import type { ActionResult, JobView } from '../../shared/types';
@@ -110,7 +111,7 @@ actionRoutes.post('/work', requireAuth, async (c) => {
 });
 
 actionRoutes.post('/rest', requireAuth, async (c) => {
-  const result = await runAction(c.get('userId'), ({ user, abilities }) => {
+  const result = await runAction(c.get('userId'), ({ user, abilities, lands }) => {
     if (user.fullness <= 0) throw new GameError('お腹が空きすぎて休めません。何か食べましょう');
 
     const max = maxPowers(abilities);
@@ -119,15 +120,19 @@ actionRoutes.post('/rest', requireAuth, async (c) => {
     if (isFull) throw new GameError('元気いっぱいなので休む必要はありません');
 
     // 休息は基本の回復手段なので、BMI 補正・満腹度ペナルティはかけず常に一定量回復する
-    const condition = Math.min(LIMITS.conditionMax, user.condition + REST.conditionRecovery);
+    // 一軒家を持っていれば、家で休めるので回復量が増える
+    const hasHouse = lands.some((l) => l.building === 'house');
+    const rate = hasHouse ? REALESTATE.houseRestRate : 1;
+    const power = Math.floor(REST.powerRecovery * rate);
+    const condition = Math.min(LIMITS.conditionMax, user.condition + Math.floor(REST.conditionRecovery * rate));
     return {
       user: {
-        body_power: Math.min(max.body, user.body_power + REST.powerRecovery),
-        brain_power: Math.min(max.brain, user.brain_power + REST.powerRecovery),
+        body_power: Math.min(max.body, user.body_power + power),
+        brain_power: Math.min(max.brain, user.brain_power + power),
         fullness: Math.max(0, user.fullness - REST.fullnessCost),
         condition,
       },
-      message: `ひと休みして元気を取り戻した（コンディション +${condition - user.condition}、満腹度 -${Math.min(user.fullness, REST.fullnessCost)}）`,
+      message: `${hasHouse ? '家で' : ''}ひと休みして元気を取り戻した（コンディション +${condition - user.condition}、満腹度 -${Math.min(user.fullness, REST.fullnessCost)}）`,
     };
   }, 'rest');
   return c.json<ActionResult>(result);

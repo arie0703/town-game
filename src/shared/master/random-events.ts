@@ -1,5 +1,6 @@
 import type { Abilities, AbilityKey } from '../abilities';
 import { yen } from '../format';
+import { JOB_LINES } from './jobs';
 import { describeEffect } from './effects';
 
 // ランダムイベントの対象になる行動の種類
@@ -12,15 +13,13 @@ export type ActionKind =
   | 'cafeteria'
   | 'izakaya'
   | 'blackmarket'
-  | 'fight'
-  | 'chohan';
+  | 'fight';
 
 // 行動の結果のうち、イベントの条件・効果に使う値（行動ごとに必要なものだけ入る）
 export type EventContext = {
   pay?: number; // 仕事: 稼いだ額
   boughtItemId?: string; // 闇市場: 買ったアイテム
   boughtQuantity?: number;
-  lostBet?: number; // 丁半: 負けて失った額（勝ったときは入らない）
   trainedAbilities?: AbilityKey[]; // 学校: その授業で上がった能力
 };
 
@@ -56,20 +55,6 @@ export type RandomEvent = {
   effect: EventEffect | ((state: EventState, ctx: EventContext) => EventEffect);
 };
 
-// 職業の系統（下位職 → 上位職）
-const LINES = {
-  parttime: ['parttime', 'part_leader', 'store_manager'],
-  teacher: ['teacher', 'vice_principal', 'principal'],
-  programmer: ['programmer', 'senior_engineer', 'cto'],
-  trainer: ['fitness_trainer', 'personal_trainer', 'gym_owner'],
-  model: ['model', 'popular_model', 'top_model'],
-  comedian: ['comedian', 'popular_comedian', 'grand_master'],
-  sumo: ['sumo_trainee', 'makushita', 'yokozuna'],
-  mma: ['mma_trainee', 'mma_fighter', 'mma_champion'],
-  curry: ['curry_shop', 'curry_chef', 'curry_master'],
-  bar: ['bar_trainee', 'bartender', 'master_bartender'],
-} as const;
-
 const payRate = (rate: number) => (_: EventState, ctx: EventContext): EventEffect => ({ money: Math.floor((ctx.pay ?? 0) * rate) });
 const hasPay = (_: EventState, ctx: EventContext) => (ctx.pay ?? 0) > 0;
 
@@ -81,53 +66,53 @@ function jobEvents(): RandomEvent[] {
   const work = ['work'] as const;
   const list: Array<Omit<RandomEvent, 'actions'>> = [
     // アルバイト系統
-    { id: 'regular_customer', text: '常連さんに名前を覚えられた', jobs: LINES.parttime, weight: 12, tone: 'good', effect: (s, c) => ({ ...payRate(0.3)(s, c), gain: { humor: 1 } }) },
-    { id: 'register_short', text: 'レジのお金が合わず自腹を切った', jobs: LINES.parttime, weight: 10, tone: 'bad', effect: { money: -1_000 } },
+    { id: 'regular_customer', text: '常連さんに名前を覚えられた', jobs: JOB_LINES.parttime, weight: 12, tone: 'good', effect: (s, c) => ({ ...payRate(0.3)(s, c), gain: { humor: 1 } }) },
+    { id: 'register_short', text: 'レジのお金が合わず自腹を切った', jobs: JOB_LINES.parttime, weight: 10, tone: 'bad', effect: { money: -1_000 } },
     { id: 'mass_resignation', text: 'バイトが一斉に辞めた', jobs: ['store_manager'], weight: 8, tone: 'bad', effect: { bodyPower: -30, condition: -20 } },
 
     // 教師系統
-    { id: 'thank_you_letter', text: '教え子から感謝の手紙が届いた', jobs: LINES.teacher, weight: 12, tone: 'good', effect: { condition: 20, gain: { japanese: 1 } } },
-    { id: 'parent_complaint', text: '保護者からクレームが来た', jobs: LINES.teacher, weight: 10, tone: 'bad', effect: { condition: -20 } },
+    { id: 'thank_you_letter', text: '教え子から感謝の手紙が届いた', jobs: JOB_LINES.teacher, weight: 12, tone: 'good', effect: { condition: 20, gain: { japanese: 1 } } },
+    { id: 'parent_complaint', text: '保護者からクレームが来た', jobs: JOB_LINES.teacher, weight: 10, tone: 'bad', effect: { condition: -20 } },
     { id: 'school_award', text: '学校が表彰された', jobs: ['principal'], weight: 6, tone: 'good', effect: { money: 10_000 } },
 
     // プログラマー系統
-    { id: 'tool_went_viral', text: '書いたツールがバズった', jobs: LINES.programmer, weight: 10, tone: 'good', effect: payRate(1) },
-    { id: 'production_down', text: '本番環境を落として給料がパーになった', jobs: LINES.programmer, weight: 8, tone: 'bad', when: hasPay, effect: (s, c) => ({ ...payRate(-1)(s, c), condition: -20 }) },
-    { id: 'all_night_debug', text: '徹夜でデバッグした', jobs: LINES.programmer, weight: 10, tone: 'bad', effect: { brainPower: -30, fullness: -20 } },
+    { id: 'tool_went_viral', text: '書いたツールがバズった', jobs: JOB_LINES.programmer, weight: 10, tone: 'good', effect: payRate(1) },
+    { id: 'production_down', text: '本番環境を落として給料がパーになった', jobs: JOB_LINES.programmer, weight: 8, tone: 'bad', when: hasPay, effect: (s, c) => ({ ...payRate(-1)(s, c), condition: -20 }) },
+    { id: 'all_night_debug', text: '徹夜でデバッグした', jobs: JOB_LINES.programmer, weight: 10, tone: 'bad', effect: { brainPower: -30, fullness: -20 } },
 
     // フィットネストレーナー系統
-    { id: 'client_success', text: 'お客さんが劇的に痩せて口コミが広がった', jobs: LINES.trainer, weight: 12, tone: 'good', effect: (s, c) => ({ ...payRate(0.5)(s, c), jobExp: 1 }) },
-    { id: 'back_strain', text: 'お手本を見せていて腰を痛めた', jobs: LINES.trainer, weight: 10, tone: 'bad', effect: { bodyPower: -30, condition: -15 } },
+    { id: 'client_success', text: 'お客さんが劇的に痩せて口コミが広がった', jobs: JOB_LINES.trainer, weight: 12, tone: 'good', effect: (s, c) => ({ ...payRate(0.5)(s, c), jobExp: 1 }) },
+    { id: 'back_strain', text: 'お手本を見せていて腰を痛めた', jobs: JOB_LINES.trainer, weight: 10, tone: 'bad', effect: { bodyPower: -30, condition: -15 } },
 
     // モデル系統
-    { id: 'magazine_cover', text: '雑誌の表紙に抜擢された', jobs: LINES.model, weight: 10, tone: 'good', effect: (s, c) => ({ ...payRate(1)(s, c), gain: { looks: 1 } }) },
-    { id: 'puffy_face', text: '撮影前にむくんでいて給料が半分になった', jobs: LINES.model, weight: 10, tone: 'bad', when: hasPay, effect: payRate(-0.5) },
-    { id: 'gossip', text: 'ゴシップ記事が出た', jobs: LINES.model, weight: 8, tone: 'bad', effect: { condition: -20, gain: { love: -2 } } },
+    { id: 'magazine_cover', text: '雑誌の表紙に抜擢された', jobs: JOB_LINES.model, weight: 10, tone: 'good', effect: (s, c) => ({ ...payRate(1)(s, c), gain: { looks: 1 } }) },
+    { id: 'puffy_face', text: '撮影前にむくんでいて給料が半分になった', jobs: JOB_LINES.model, weight: 10, tone: 'bad', when: hasPay, effect: payRate(-0.5) },
+    { id: 'gossip', text: 'ゴシップ記事が出た', jobs: JOB_LINES.model, weight: 8, tone: 'bad', effect: { condition: -20, gain: { love: -2 } } },
 
     // 芸人系統
-    { id: 'big_laugh', text: 'ネタが大ウケした', jobs: LINES.comedian, weight: 12, tone: 'good', effect: (s, c) => ({ ...payRate(1)(s, c), gain: { humor: 2 } }) },
-    { id: 'bombed', text: '盛大にスベって給料がパーになった', jobs: LINES.comedian, weight: 12, tone: 'bad', when: hasPay, effect: (s, c) => ({ ...payRate(-1)(s, c), condition: -15 }) },
+    { id: 'big_laugh', text: 'ネタが大ウケした', jobs: JOB_LINES.comedian, weight: 12, tone: 'good', effect: (s, c) => ({ ...payRate(1)(s, c), gain: { humor: 2 } }) },
+    { id: 'bombed', text: '盛大にスベって給料がパーになった', jobs: JOB_LINES.comedian, weight: 12, tone: 'bad', when: hasPay, effect: (s, c) => ({ ...payRate(-1)(s, c), condition: -15 }) },
     { id: 'one_hit_tv', text: '一発屋としてテレビに出演した', jobs: ['comedian'], weight: 6, tone: 'good', effect: { money: 5_000 } },
 
     // 相撲系統
-    { id: 'kinboshi', text: '金星を挙げて懸賞金を得た', jobs: LINES.sumo, weight: 10, tone: 'good', effect: { money: 5_000, gain: { power: 1 } } },
-    { id: 'sprained_ankle', text: '土俵際で足をくじいた', jobs: LINES.sumo, weight: 10, tone: 'bad', effect: { bodyPower: -40, condition: -20 } },
-    { id: 'too_much_chanko', text: 'ちゃんこを食べすぎた', jobs: LINES.sumo, weight: 12, tone: 'good', effect: { fullness: 30, weight: 1 } },
+    { id: 'kinboshi', text: '金星を挙げて懸賞金を得た', jobs: JOB_LINES.sumo, weight: 10, tone: 'good', effect: { money: 5_000, gain: { power: 1 } } },
+    { id: 'sprained_ankle', text: '土俵際で足をくじいた', jobs: JOB_LINES.sumo, weight: 10, tone: 'bad', effect: { bodyPower: -40, condition: -20 } },
+    { id: 'too_much_chanko', text: 'ちゃんこを食べすぎた', jobs: JOB_LINES.sumo, weight: 12, tone: 'good', effect: { fullness: 30, weight: 1 } },
 
     // 総合格闘技系統
-    { id: 'ko_win', text: 'KO勝ちしてファイトマネーを得た', jobs: LINES.mma, weight: 10, tone: 'good', effect: payRate(1) },
-    { id: 'missed_weight', text: '計量に失敗して罰金を払った', jobs: LINES.mma, weight: 8, tone: 'bad', effect: { money: -3_000, weight: -1 } },
-    { id: 'took_a_punch', text: '顔面に一発もらった', jobs: LINES.mma, weight: 10, tone: 'bad', effect: { condition: -25, gain: { looks: -1 } } },
+    { id: 'ko_win', text: 'KO勝ちしてファイトマネーを得た', jobs: JOB_LINES.mma, weight: 10, tone: 'good', effect: payRate(1) },
+    { id: 'missed_weight', text: '計量に失敗して罰金を払った', jobs: JOB_LINES.mma, weight: 8, tone: 'bad', effect: { money: -3_000, weight: -1 } },
+    { id: 'took_a_punch', text: '顔面に一発もらった', jobs: JOB_LINES.mma, weight: 10, tone: 'bad', effect: { condition: -25, gain: { looks: -1 } } },
 
     // カレー系統
-    { id: 'gourmet_review', text: 'グルメサイトで高評価がついた', jobs: LINES.curry, weight: 12, tone: 'good', effect: (s, c) => ({ ...payRate(0.5)(s, c), jobExp: 1 }) },
-    { id: 'staff_curry', text: 'まかないのカレーがうまくできた', jobs: LINES.curry, weight: 12, tone: 'good', effect: { fullness: 30, weight: 0.3 } },
-    { id: 'wrong_spice', text: 'スパイスの配合を間違えて給料が半分になった', jobs: LINES.curry, weight: 10, tone: 'bad', when: hasPay, effect: (s, c) => ({ ...payRate(-0.5)(s, c), gain: { science: -1 } }) },
+    { id: 'gourmet_review', text: 'グルメサイトで高評価がついた', jobs: JOB_LINES.curry, weight: 12, tone: 'good', effect: (s, c) => ({ ...payRate(0.5)(s, c), jobExp: 1 }) },
+    { id: 'staff_curry', text: 'まかないのカレーがうまくできた', jobs: JOB_LINES.curry, weight: 12, tone: 'good', effect: { fullness: 30, weight: 0.3 } },
+    { id: 'wrong_spice', text: 'スパイスの配合を間違えて給料が半分になった', jobs: JOB_LINES.curry, weight: 10, tone: 'bad', when: hasPay, effect: (s, c) => ({ ...payRate(-0.5)(s, c), gain: { science: -1 } }) },
 
     // バーテンダー系統
-    { id: 'love_advice', text: '常連客の恋愛相談に乗ってチップをもらった', jobs: LINES.bar, weight: 12, tone: 'good', effect: { money: 2_000, gain: { love: 2 } } },
-    { id: 'broke_bottle', text: '高級ボトルを割って弁償した', jobs: LINES.bar, weight: 8, tone: 'bad', when: (s) => s.money >= 5_000, effect: { money: -5_000 } },
-    { id: 'drank_with_guest', text: '客に付き合って飲みすぎた', jobs: LINES.bar, weight: 10, tone: 'bad', effect: { condition: -20 } },
+    { id: 'love_advice', text: '常連客の恋愛相談に乗ってチップをもらった', jobs: JOB_LINES.bar, weight: 12, tone: 'good', effect: { money: 2_000, gain: { love: 2 } } },
+    { id: 'broke_bottle', text: '高級ボトルを割って弁償した', jobs: JOB_LINES.bar, weight: 8, tone: 'bad', when: (s) => s.money >= 5_000, effect: { money: -5_000 } },
+    { id: 'drank_with_guest', text: '客に付き合って飲みすぎた', jobs: JOB_LINES.bar, weight: 10, tone: 'bad', effect: { condition: -20 } },
   ];
   return list.map((e) => ({ ...e, actions: work, weight: e.weight * JOB_EVENT_WEIGHT_RATE }));
 }
@@ -268,17 +253,6 @@ export const RANDOM_EVENTS: readonly RandomEvent[] = [
     tone: 'bad',
     when: (s) => s.money >= 5_000,
     effect: { money: -5_000 },
-  },
-
-  // 丁半（負けたときのみ）
-  {
-    id: 'caught_cheat',
-    text: 'イカサマを見抜いて掛け金を取り戻した',
-    actions: ['chohan'],
-    weight: 20,
-    tone: 'good',
-    when: (_, ctx) => (ctx.lostBet ?? 0) > 0,
-    effect: (_, ctx) => ({ money: ctx.lostBet ?? 0 }),
   },
 ];
 

@@ -31,9 +31,8 @@ battleRoutes.post('/casino/chohan', requireAuth, async (c) => {
     return {
       user: { money: won ? user.money + bet : user.money - bet },
       message: won ? `${head}当たり！${yen(bet * 2)}を受け取った` : `${head}外れ…${yen(bet)}を失った`,
-      context: won ? {} : { lostBet: bet },
     };
-  }, 'chohan');
+  });
   return c.json<ActionResult>(result);
 });
 
