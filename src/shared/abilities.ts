@@ -8,13 +8,13 @@ export const ABILITY_CATEGORIES = {
 export type AbilityCategory = keyof typeof ABILITY_CATEGORIES;
 
 export const ABILITIES = [
-  { key: 'japanese', label: '国語', category: 'brain' },
-  { key: 'math', label: '数学', category: 'brain' },
-  { key: 'science', label: '理科', category: 'brain' },
-  { key: 'social', label: '社会', category: 'brain' },
-  { key: 'language', label: '語学', category: 'brain' },
-  { key: 'music', label: '音楽', category: 'brain' },
-  { key: 'art', label: '美術', category: 'brain' },
+  { key: 'japanese', label: '表現力', category: 'brain' },
+  { key: 'math', label: '論理力', category: 'brain' },
+  { key: 'science', label: '探究心', category: 'brain' },
+  { key: 'social', label: '教養', category: 'brain' },
+  { key: 'language', label: '国際感覚', category: 'brain' },
+  { key: 'music', label: '感性', category: 'brain' },
+  { key: 'art', label: '創造性', category: 'brain' },
   { key: 'looks', label: 'ルックス', category: 'body' },
   { key: 'stamina', label: '体力', category: 'body' },
   { key: 'health', label: '健康', category: 'body' },
