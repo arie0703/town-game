@@ -54,7 +54,7 @@ actionRoutes.post('/jobs/apply', requireAuth, async (c) => {
 
   const userId = c.get('userId');
   const totalAssets = await totalAssetsOf(await loadPlayer(db, userId));
-  const message = await runAction(userId, (player) => {
+  const result = await runAction(userId, (player) => {
     if (player.user.job_id === job.id) throw new GameError(`すでに${job.name}です`);
     const { unmet } = jobRequirements(job, { player, totalAssets });
     if (unmet.length > 0) throw new GameError(`条件を満たしていません（${unmet.join('、')}）`);
@@ -63,20 +63,20 @@ actionRoutes.post('/jobs/apply', requireAuth, async (c) => {
       message: job.promotion ? `${jobName(job.promotion.from)}から${job.name}に昇進した！` : `${job.name}に転職した`,
     };
   });
-  return c.json<ActionResult>({ message });
+  return c.json<ActionResult>(result);
 });
 
 actionRoutes.post('/jobs/quit', requireAuth, async (c) => {
-  const message = await runAction(c.get('userId'), ({ user }) => {
+  const result = await runAction(c.get('userId'), ({ user }) => {
     const job = findJob(user.job_id);
     if (!job || job.id === 'none') throw new GameError('今は無職です');
     return { user: { job_id: 'none' }, message: `${job.name}を退職した` };
   });
-  return c.json<ActionResult>({ message });
+  return c.json<ActionResult>(result);
 });
 
 actionRoutes.post('/work', requireAuth, async (c) => {
-  const message = await runAction(c.get('userId'), ({ user, abilities, jobExp }) => {
+  const result = await runAction(c.get('userId'), ({ user, abilities, jobExp }) => {
     const job = findJob(user.job_id);
     if (!job || job.id === 'none') throw new GameError('無職なので働けません。職業安定所で仕事を探しましょう');
 
@@ -103,13 +103,14 @@ actionRoutes.post('/work', requireAuth, async (c) => {
       abilities: addAbilities(abilities, job.abilityGain),
       jobExp: { [job.id]: exp },
       message: `${yen(pay)}を稼いだ（経験値 +1）${levelUp}`,
+      context: { pay },
     };
-  });
-  return c.json<ActionResult>({ message });
+  }, 'work');
+  return c.json<ActionResult>(result);
 });
 
 actionRoutes.post('/rest', requireAuth, async (c) => {
-  const message = await runAction(c.get('userId'), ({ user, abilities }) => {
+  const result = await runAction(c.get('userId'), ({ user, abilities }) => {
     if (user.fullness <= 0) throw new GameError('お腹が空きすぎて休めません。何か食べましょう');
 
     const max = maxPowers(abilities);
@@ -128,6 +129,6 @@ actionRoutes.post('/rest', requireAuth, async (c) => {
       },
       message: `ひと休みして元気を取り戻した（コンディション +${condition - user.condition}、満腹度 -${Math.min(user.fullness, REST.fullnessCost)}）`,
     };
-  });
-  return c.json<ActionResult>({ message });
+  }, 'rest');
+  return c.json<ActionResult>(result);
 });

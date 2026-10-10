@@ -40,16 +40,17 @@ itemRoutes.post('/shop/buy', requireAuth, async (c) => {
     throw new GameError(`個数は1〜${MAX_PURCHASE_QUANTITY}で指定してください`);
   }
 
-  const message = await runAction(c.get('userId'), ({ user, items }) => {
+  const result = await runAction(c.get('userId'), ({ user, items }) => {
     const total = item.price * quantity;
     if (user.money < total) throw new GameError('お金が足りません');
     return {
       user: { money: user.money - total },
       items: { [item.id]: (items[item.id] ?? 0) + quantity },
       message: `${item.shop === 'blackmarket' ? '闇市場' : 'お店'}で${item.name}を${quantity}個買った（${yen(total)}）`,
+      context: { boughtItemId: item.id, boughtQuantity: quantity },
     };
-  });
-  return c.json<ActionResult>({ message });
+  }, item.shop === 'blackmarket' ? 'blackmarket' : undefined);
+  return c.json<ActionResult>(result);
 });
 
 // 所持アイテムを使う
@@ -58,7 +59,7 @@ itemRoutes.post('/items/use', requireAuth, async (c) => {
   const item = typeof body.itemId === 'string' ? findItem(body.itemId) : undefined;
   if (!item) throw new GameError('そのアイテムはありません');
 
-  const message = await runAction(c.get('userId'), (player) => {
+  const result = await runAction(c.get('userId'), (player) => {
     const owned = player.items[item.id] ?? 0;
     if (owned <= 0) throw new GameError(`${item.name}を持っていません`);
     if (item.effect.type === 'food') assertNotFull(player.user.fullness);
@@ -70,8 +71,8 @@ itemRoutes.post('/items/use', requireAuth, async (c) => {
       items: { [item.id]: owned - 1 },
       message: `${item.name}を${verb}（${describeItem(item)}）`,
     };
-  });
-  return c.json<ActionResult>({ message });
+  }, 'item');
+  return c.json<ActionResult>(result);
 });
 
 // 食堂・居酒屋で注文する
@@ -80,7 +81,7 @@ itemRoutes.post('/eat', requireAuth, async (c) => {
   const menu = typeof body.menuId === 'string' ? findMenu(body.menuId) : undefined;
   if (!menu) throw new GameError('そのメニューはありません');
 
-  const message = await runAction(c.get('userId'), (player) => {
+  const result = await runAction(c.get('userId'), (player) => {
     // お酒は別腹（満腹でも飲める）
     if (!menu.drink) assertNotFull(player.user.fullness);
     if (player.user.money < menu.price) throw new GameError('お金が足りません');
@@ -90,13 +91,13 @@ itemRoutes.post('/eat', requireAuth, async (c) => {
       abilities: change.abilities,
       message: `${menu.shop === 'izakaya' ? '居酒屋' : '食堂'}で${menu.name}を${menu.drink ? '飲んだ' : '食べた'}（${yen(menu.price)}、${describeMenu(menu)}）`,
     };
-  });
-  return c.json<ActionResult>({ message });
+  }, menu.shop === 'izakaya' ? 'izakaya' : 'cafeteria');
+  return c.json<ActionResult>(result);
 });
 
 // 炊き出し（持ち金がちょうど 0円 のときだけ）
 itemRoutes.post('/cafeteria/soup', requireAuth, async (c) => {
-  const message = await runAction(c.get('userId'), ({ user }) => {
+  const result = await runAction(c.get('userId'), ({ user }) => {
     if (user.money !== 0) throw new GameError('炊き出しは一文無しの方限定です');
     if (user.deposit > 0) throw new GameError('銀行に預金がある方は炊き出しを利用できません');
     assertNotFull(user.fullness);
@@ -108,5 +109,5 @@ itemRoutes.post('/cafeteria/soup', requireAuth, async (c) => {
       message: `炊き出しの列に並んだ（おにぎり1個をもらった。通算${user.soup_kitchen_count + 1}回目）`,
     };
   });
-  return c.json<ActionResult>({ message });
+  return c.json<ActionResult>(result);
 });

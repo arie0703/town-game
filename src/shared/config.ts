@@ -84,3 +84,8 @@ export const JOB_LEVEL = {
   // 職業レベルの区切り（経験値）。1回働くと経験値 +1。左から Lv1, Lv2, ...
   expThresholds: [0, 10, 30, 60, 100],
 } as const;
+
+export const RANDOM_EVENT = {
+  // 対象の行動1回あたりの発生確率（1回の行動で起きるイベントは最大1つ）
+  rate: 0.08,
+} as const;

@@ -1,9 +1,12 @@
 import type { Kysely, Selectable, Updateable } from 'kysely';
 import { ABILITIES, type Abilities } from '../../shared/abilities';
 import { LIMITS } from '../../shared/config';
+import type { ActionKind, EventContext } from '../../shared/master/random-events';
+import type { ActionResult } from '../../shared/types';
 import { db, type DB, type UsersTable } from '../db';
 import { addEvent } from '../events';
 import { GameError } from './errors';
+import { rollRandomEvent } from './random-events';
 
 // items: 所持アイテム（itemId → 個数）、jobExp: 職業ごとの経験値（jobId → 経験値）
 export type Player = {
@@ -21,6 +24,8 @@ export type PlayerChange = {
   // 変更後の職業ごとの経験値（jobId → 経験値）
   jobExp?: Record<string, number>;
   message: string;
+  // ランダムイベントの条件・効果に使う行動の結果（稼いだ額など）
+  context?: EventContext;
 };
 
 // 能力値を加算する（0 未満にはしない。上限が設定されていれば頭打ち）
@@ -49,11 +54,17 @@ export async function loadPlayer(executor: Kysely<DB>, userId: number): Promise<
   return { user, abilities, items, jobExp };
 }
 
-// アクション共通処理: 読み込み → 計算（fn）→ 書き戻し → 出来事ログ を1トランザクションで行う
-export async function runAction(userId: number, fn: (player: Player) => PlayerChange): Promise<string> {
+// アクション共通処理: 読み込み → 計算（fn）→ ランダムイベント → 書き戻し → 出来事ログ を1トランザクションで行う
+//   kind: ランダムイベントの対象の行動の種類（省略するとイベントは起きない）
+export async function runAction(
+  userId: number,
+  fn: (player: Player) => PlayerChange,
+  kind?: ActionKind,
+): Promise<ActionResult> {
   return db.transaction().execute(async (trx) => {
     const player = await loadPlayer(trx, userId);
-    const change = fn(player);
+    const base = fn(player);
+    const { change, event } = kind ? rollRandomEvent(kind, player, base) : { change: base, event: null };
     if (change.user && Object.keys(change.user).length > 0) {
       await trx.updateTable('users').set(change.user).where('id', '=', userId).execute();
     }
@@ -78,7 +89,7 @@ export async function runAction(userId: number, fn: (player: Player) => PlayerCh
         .onConflict((oc) => oc.columns(['user_id', 'job_id']).doUpdateSet({ exp }))
         .execute();
     }
-    await addEvent(trx, userId, change.message);
-    return change.message;
+    await addEvent(trx, userId, event ? `${change.message} ★${event.text}` : change.message);
+    return event ? { message: change.message, event } : { message: change.message };
   });
 }

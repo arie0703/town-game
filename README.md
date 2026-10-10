@@ -67,11 +67,12 @@ src/
 
 数値はすべて以下にまとまっており、ロジックを触らずに調整できる。
 
-- `src/shared/config.ts`: 初期値、休息・学校・ジムの効果、丁半の上限、ストリートファイトの係数など
+- `src/shared/config.ts`: 初期値、休息・学校・ジムの効果、丁半の上限、ストリートファイトの係数、ランダムイベントの発生確率など
 - `src/shared/master/jobs.ts`: 職業ごとの給料・就職条件・消費パワー
 - `src/shared/master/items.ts`: お店のアイテムの価格・効果
 - `src/shared/master/menus.ts`: 食堂のメニューの価格・効果
 - `src/shared/master/map.ts`: マップの配置と土地の価格
+- `src/shared/master/random-events.ts`: ランダムイベントの内容・重み・発生条件（発生確率は `config.ts` の `RANDOM_EVENT`）
 
 ## マップのアイコン
 

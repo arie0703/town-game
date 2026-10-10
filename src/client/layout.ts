@@ -1,21 +1,29 @@
-import type { ActionResult, Me } from '../shared/types';
+import type { ActionEvent, ActionResult, Me } from '../shared/types';
 import { api, ApiError } from './api';
 import { escapeHtml } from './html';
 
-type Flash = { message: string; kind: 'info' | 'error' };
+type Flash = { message: string; kind: 'info' | 'error'; event?: ActionEvent };
 
 let flash: Flash | null = null;
 
 // 次に描画する画面の上部にメッセージを出す
-export function setFlash(message: string, kind: Flash['kind'] = 'info'): void {
-  flash = { message, kind };
+export function setFlash(message: string, kind: Flash['kind'] = 'info', event?: ActionEvent): void {
+  flash = { message, kind, event };
+}
+
+// ランダムイベントは行動の結果の下に別の行で目立たせる
+function flashHtml({ message, kind, event }: Flash): string {
+  const eventLine = event
+    ? `<span class="flash-event flash-event-${event.tone}">★ ${escapeHtml(event.text)}</span>`
+    : '';
+  return `<p class="flash flash-${kind}">${escapeHtml(message)}${eventLine}</p>`;
 }
 
 // アクション API を呼び、結果をフラッシュに積んでから画面を描き直す
 export async function postAction(path: string, body: unknown, rerender: () => Promise<void>): Promise<void> {
   try {
     const result = await api.post<ActionResult>(path, body);
-    setFlash(result.message);
+    setFlash(result.message, 'info', result.event);
   } catch (e) {
     setFlash(e instanceof ApiError ? e.message : '通信エラーが発生しました', 'error');
   }
@@ -35,7 +43,7 @@ export function renderLayout(root: HTMLElement, me: Me): HTMLElement {
         <button type="button" id="logout">ログアウト</button>
       </nav>
     </header>
-    ${current ? `<p class="flash flash-${current.kind}">${escapeHtml(current.message)}</p>` : ''}
+    ${current ? flashHtml(current) : ''}
     <main id="main"></main>
   `;
   root.querySelector('#logout')!.addEventListener('click', async () => {

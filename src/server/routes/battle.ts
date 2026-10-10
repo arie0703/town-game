@@ -21,7 +21,7 @@ battleRoutes.post('/casino/chohan', requireAuth, async (c) => {
   if (!Number.isInteger(bet) || bet < 1) throw new GameError('賭け金は1円以上の整数で指定してください');
   if (bet > CHOHAN.maxBet) throw new GameError(`賭け金は1回${yen(CHOHAN.maxBet)}までです`);
 
-  const message = await runAction(c.get('userId'), ({ user }) => {
+  const result = await runAction(c.get('userId'), ({ user }) => {
     if (bet > user.money) throw new GameError('持ち金が足りません');
     const dice = [randomIntInclusive(1, 6), randomIntInclusive(1, 6)];
     const result = (dice[0] + dice[1]) % 2 === 0 ? 'cho' : 'han';
@@ -31,9 +31,10 @@ battleRoutes.post('/casino/chohan', requireAuth, async (c) => {
     return {
       user: { money: won ? user.money + bet : user.money - bet },
       message: won ? `${head}当たり！${yen(bet * 2)}を受け取った` : `${head}外れ…${yen(bet)}を失った`,
+      context: won ? {} : { lostBet: bet },
     };
-  });
-  return c.json<ActionResult>({ message });
+  }, 'chohan');
+  return c.json<ActionResult>(result);
 });
 
 // ストリートファイト: 相手はランダム。勝敗の影響を受けるのは挑戦した側のみ
@@ -44,7 +45,7 @@ battleRoutes.post('/fight', requireAuth, async (c) => {
   // 相手のデータは読み取りのみ（書き換えない）
   const opponent = await loadPlayer(db, pickRandom(others).id);
 
-  const message = await runAction(userId, ({ user, abilities }) => {
+  const result = await runAction(userId, ({ user, abilities }) => {
     if (user.body_power < FIGHT.powerCost) throw new GameError('身体パワーが足りません。休息しましょう');
 
     const mine = combatPower(abilities, user.condition);
@@ -71,6 +72,6 @@ battleRoutes.post('/fight', requireAuth, async (c) => {
       },
       message: `${head}敗北…持ち金が半分になった（-${yen(lost)}）`,
     };
-  });
-  return c.json<ActionResult>({ message });
+  }, 'fight');
+  return c.json<ActionResult>(result);
 });

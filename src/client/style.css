@@ -303,6 +303,20 @@ button.cell {
   background: #fffbe0;
 }
 
+.flash-event {
+  display: block;
+  margin-top: 4px;
+  font-weight: bold;
+}
+
+.flash-event-good {
+  color: #1e6b34;
+}
+
+.flash-event-bad {
+  color: #b00020;
+}
+
 .flash-error {
   color: #b00020;
   border-color: #b00020;

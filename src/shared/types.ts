@@ -37,7 +37,10 @@ export type MapCellView =
   | (Extract<MapCell, { type: 'lot' }> & { owner: UserRef | null });
 
 // アクション系 API の共通レスポンス
-export type ActionResult = { message: string };
+// 行動中に起きたランダムイベント（tone: 良い / 悪い出来事）
+export type ActionEvent = { text: string; tone: 'good' | 'bad' };
+
+export type ActionResult = { message: string; event?: ActionEvent };
 
 // GET /api/jobs のレスポンス要素
 export type JobView = {
