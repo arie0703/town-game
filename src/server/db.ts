@@ -21,8 +21,6 @@ export interface UsersTable {
   height: number;
   weight_g: number; // 体重（グラム）
   fullness: number;
-  lover_id: number | null;
-  spouse_id: number | null;
   created_at: string;
 }
 
@@ -49,18 +47,6 @@ export interface LandsTable {
   store_kind: StoreKind | null; // 店舗の業種（店舗以外は null）
 }
 
-export type RelationshipType = 'date' | 'propose';
-export type RelationshipStatus = 'pending' | 'accepted' | 'rejected' | 'cancelled';
-
-export interface RelationshipRequestsTable {
-  id: Generated<number>;
-  from_id: number;
-  to_id: number;
-  type: RelationshipType;
-  status: RelationshipStatus;
-  created_at: string;
-}
-
 export interface UserJobExpTable {
   user_id: number;
   job_id: string;
@@ -78,7 +64,6 @@ export interface UserStatesTable {
 export interface DB {
   users: UsersTable;
   lands: LandsTable;
-  relationship_requests: RelationshipRequestsTable;
   abilities: AbilitiesTable;
   events: EventsTable;
   user_items: UserItemsTable;
@@ -111,8 +96,6 @@ export async function initDb(): Promise<void> {
     .addColumn('height', 'integer', (col) => col.notNull())
     .addColumn('weight_g', 'integer', (col) => col.notNull())
     .addColumn('fullness', 'integer', (col) => col.notNull())
-    .addColumn('lover_id', 'integer', (col) => col.references('users.id'))
-    .addColumn('spouse_id', 'integer', (col) => col.references('users.id'))
     .addColumn('created_at', 'text', (col) => col.notNull())
     .execute();
 
@@ -174,17 +157,6 @@ export async function initDb(): Promise<void> {
     await db.schema.alterTable('lands').addColumn('building', 'text', (col) => col.notNull().defaultTo('house')).execute();
     await db.schema.alterTable('lands').addColumn('store_kind', 'text').execute();
   }
-
-  await db.schema
-    .createTable('relationship_requests')
-    .ifNotExists()
-    .addColumn('id', 'integer', (col) => col.primaryKey().autoIncrement())
-    .addColumn('from_id', 'integer', (col) => col.notNull().references('users.id'))
-    .addColumn('to_id', 'integer', (col) => col.notNull().references('users.id'))
-    .addColumn('type', 'text', (col) => col.notNull())
-    .addColumn('status', 'text', (col) => col.notNull())
-    .addColumn('created_at', 'text', (col) => col.notNull())
-    .execute();
 
   await db.schema
     .createTable('user_job_exp')

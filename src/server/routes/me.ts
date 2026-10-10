@@ -3,7 +3,7 @@ import { ABILITIES, type Abilities } from '../../shared/abilities';
 import { goodnessRank } from '../../shared/goodness';
 import { jobLevel, jobName } from '../../shared/master/jobs';
 import { isStateId, stateLabel, STATES } from '../../shared/master/states';
-import type { EventItem, Me, UserRef } from '../../shared/types';
+import type { EventItem, Me } from '../../shared/types';
 import { clearLoginCookie, requireAuth, type AuthEnv } from '../auth';
 import { gToKg } from '../../shared/weight';
 import { db } from '../db';
@@ -11,11 +11,6 @@ import { landValueOf } from '../game/assets';
 import { bmi, categoryTotal, maxPowers } from '../game/status';
 
 const EVENTS_LIMIT = 20;
-
-export async function findUserRef(id: number | null): Promise<UserRef | null> {
-  if (id === null) return null;
-  return (await db.selectFrom('users').select(['id', 'name']).where('id', '=', id).executeTakeFirst()) ?? null;
-}
 
 export async function loadMe(userId: number): Promise<Me | null> {
   const user = await db.selectFrom('users').selectAll().where('id', '=', userId).executeTakeFirst();
@@ -54,8 +49,6 @@ export async function loadMe(userId: number): Promise<Me | null> {
     weight: gToKg(user.weight_g),
     bmi: bmi(user.height, user.weight_g),
     fullness: user.fullness,
-    lover: await findUserRef(user.lover_id),
-    spouse: await findUserRef(user.spouse_id),
     abilities,
     brainTotal: categoryTotal(abilities, 'brain'),
     bodyTotal: categoryTotal(abilities, 'body'),

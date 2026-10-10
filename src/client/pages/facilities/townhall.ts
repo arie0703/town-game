@@ -6,12 +6,6 @@ import { yen } from '../../format';
 import { escapeHtml } from '../../html';
 import { postAction } from '../../layout';
 
-function partner(r: ResidentView): string {
-  if (r.spouse) return `配偶者: ${escapeHtml(r.spouse.name)}`;
-  if (r.lover) return `恋人: ${escapeHtml(r.lover.name)}`;
-  return '-';
-}
-
 export async function renderTownhall(container: HTMLElement, me: Me, rerender: () => Promise<void>): Promise<void> {
   const residents = await api.get<ResidentView[]>('/residents');
   const rows = residents
@@ -23,7 +17,6 @@ export async function renderTownhall(container: HTMLElement, me: Me, rerender: (
           <td>${escapeHtml(r.jobName)}</td>
           <td>${r.goodnessRank}</td>
           <td>${yen(r.totalAssets)}</td>
-          <td>${partner(r)}</td>
         </tr>
       `,
     )
@@ -50,7 +43,7 @@ export async function renderTownhall(container: HTMLElement, me: Me, rerender: (
     </div>
     <p>住民数: ${residents.length}人（総資産 = 持ち金 + 預金 + 所有物件の評価額）</p>
     <table class="table list">
-      <thead><tr><th>順位</th><th>名前</th><th>職業</th><th>善悪</th><th>総資産</th><th>恋人/配偶者</th></tr></thead>
+      <thead><tr><th>順位</th><th>名前</th><th>職業</th><th>善悪</th><th>総資産</th></tr></thead>
       <tbody>${rows}</tbody>
     </table>
   `;

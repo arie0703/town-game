@@ -1,5 +1,5 @@
 import { ABILITIES, ABILITY_CATEGORIES, type AbilityCategory } from '../../shared/abilities';
-import type { EventItem, MapCellView, Me, UserRef } from '../../shared/types';
+import type { EventItem, MapCellView, Me } from '../../shared/types';
 import { api } from '../api';
 import { requireLogin } from '../auth';
 import { bindMapHint, mapHtml } from '../components/map';
@@ -7,10 +7,6 @@ import { dateTime, gauge, yen } from '../format';
 import { formatKg } from '../../shared/weight';
 import { escapeHtml } from '../html';
 import { postAction, postActionRepeat, renderLayout } from '../layout';
-
-function userName(user: UserRef | null): string {
-  return user ? escapeHtml(user.name) : 'なし';
-}
 
 // 状態のラベル（なければ「なし」）
 function statesHtml(me: Me): string {
@@ -34,8 +30,6 @@ function statusTable(me: Me): string {
     ['身長', `${me.height} cm`],
     ['体重', formatKg(me.weight)],
     ['BMI', String(me.bmi)],
-    ['恋人', userName(me.lover)],
-    ['配偶者', userName(me.spouse)],
   ];
   return `
     <table class="table">
@@ -87,7 +81,6 @@ export async function renderHome(root: HTMLElement): Promise<void> {
             <button type="button" id="rest-full" title="元気いっぱいになるまで休息をくり返す">しっかり休む</button>
             <a class="button" href="#/items">アイテム</a>
             <a class="button" href="#/fight">ストリートファイト</a>
-            <a class="button" href="#/love">恋愛</a>
           </div>
         </div>
         <div class="abilities">

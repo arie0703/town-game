@@ -65,8 +65,6 @@ authRoutes.post('/register', async (c) => {
         height: randomInt(INITIAL.heightRange),
         weight_g: randomInt([INITIAL.weightRange[0] * 10, INITIAL.weightRange[1] * 10]) * 100,
         fullness: INITIAL.fullness,
-        lover_id: null,
-        spouse_id: null,
         created_at: new Date().toISOString(),
       })
       .returning('id')

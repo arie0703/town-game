@@ -25,8 +25,6 @@ export type Me = {
   weight: number; // kg（0.1kg 単位）
   bmi: number;
   fullness: number;
-  lover: UserRef | null;
-  spouse: UserRef | null;
   abilities: Abilities;
   brainTotal: number;
   bodyTotal: number;
@@ -72,21 +70,6 @@ export type JobView = {
 // GET /api/items のレスポンス要素（所持アイテム）
 export type InventoryItem = { itemId: string; quantity: number };
 
-export type LoveRequestType = 'date' | 'propose';
-
-// 恋愛の申し込み（incoming なら user は送り主、outgoing なら宛先）
-export type LoveRequestView = { id: number; type: LoveRequestType; user: UserRef; createdAt: string };
-
-// GET /api/love のレスポンス
-export type LoveState = {
-  lover: UserRef | null;
-  spouse: UserRef | null;
-  incoming: LoveRequestView[];
-  outgoing: LoveRequestView[];
-  // 交際を申し込める相手（自分以外で恋人・配偶者がいない住民）
-  candidates: UserRef[];
-};
-
 // GET /api/residents のレスポンス要素（総資産の多い順）
 export type ResidentView = {
   rank: number;
@@ -95,6 +78,4 @@ export type ResidentView = {
   jobName: string;
   totalAssets: number;
   goodnessRank: GoodnessRank;
-  lover: UserRef | null;
-  spouse: UserRef | null;
 };

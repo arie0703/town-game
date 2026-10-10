@@ -3,7 +3,6 @@ import { renderFacility } from './pages/facility';
 import { renderFight } from './pages/fight';
 import { renderHome } from './pages/home';
 import { renderItems } from './pages/items';
-import { renderLove } from './pages/love';
 import { renderNotFound } from './pages/not-found';
 import { renderTop } from './pages/top';
 
@@ -16,7 +15,6 @@ const routes: Array<[string, Page]> = [
   ['/facility/:id', renderFacility],
   ['/items', renderItems],
   ['/fight', renderFight],
-  ['/love', renderLove],
 ];
 
 function matchRoute(path: string): { page: Page; params: Record<string, string> } {
