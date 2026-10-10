@@ -1,5 +1,6 @@
 import { ABILITIES, type Abilities, type AbilityCategory } from '../../shared/abilities';
-import { LIMITS, STATUS } from '../../shared/config';
+import { BODY, LIMITS, STATUS } from '../../shared/config';
+import { kgToG } from '../../shared/weight';
 
 export function clamp(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, value));
@@ -18,9 +19,19 @@ export function maxPowers(abilities: Abilities): { body: number; brain: number }
 }
 
 // BMI = 体重(kg) ÷ 身長(m)²。小数第1位まで
-export function bmi(heightCm: number, weightKg: number): number {
+export function bmi(heightCm: number, weightG: number): number {
   const m = heightCm / 100;
-  return Math.round((weightKg / (m * m)) * 10) / 10;
+  return Math.round((weightG / 1000 / (m * m)) * 10) / 10;
+}
+
+// 体重（g）に kg 単位の増減を加える。BODY.minWeight〜maxWeight に収める
+export function addWeight(weightG: number, deltaKg: number): number {
+  return clamp(weightG + kgToG(deltaKg), kgToG(BODY.minWeight), kgToG(BODY.maxWeight));
+}
+
+// 身長（cm）に増減を加える。BODY.minHeight〜maxHeight に収める
+export function addHeight(heightCm: number, deltaCm: number): number {
+  return clamp(heightCm + deltaCm, BODY.minHeight, BODY.maxHeight);
 }
 
 export function isBmiNormal(value: number): boolean {
@@ -28,20 +39,21 @@ export function isBmiNormal(value: number): boolean {
   return value >= min && value <= max;
 }
 
-// コンディション回復量に BMI 補正をかける（標準範囲外なら減る）
+// コンディション回復量に BMI 補正をかける（標準範囲外なら減る）。マイナス（低下）には補正をかけない
 export function conditionRecovery(base: number, bmiValue: number): number {
-  return isBmiNormal(bmiValue) ? base : Math.floor(base * STATUS.bmiOutOfRangeRecoveryRate);
+  if (base <= 0 || isBmiNormal(bmiValue)) return base;
+  return Math.floor(base * STATUS.bmiOutOfRangeRecoveryRate);
 }
 
-// 行動したときの空腹度・コンディションの変化（各アクション共通）
-// 空腹度を hungerCost 減らし、減らす前の空腹度が閾値未満ならコンディションも下げる
+// 行動したときの満腹度・コンディションの変化（各アクション共通）
+// 満腹度を fullnessCost 減らし、減らす前の満腹度が閾値未満ならコンディションも下げる
 export function afterAction(
-  state: { hunger: number; condition: number },
-  hungerCost: number,
-): { hunger: number; condition: number } {
-  const penalty = state.hunger < STATUS.hungryThreshold ? STATUS.hungryConditionPenalty : 0;
+  state: { fullness: number; condition: number },
+  fullnessCost: number,
+): { fullness: number; condition: number } {
+  const penalty = state.fullness < STATUS.lowFullnessThreshold ? STATUS.lowFullnessConditionPenalty : 0;
   return {
-    hunger: clamp(state.hunger - hungerCost, 0, LIMITS.hungerMax),
+    fullness: clamp(state.fullness - fullnessCost, 0, LIMITS.fullnessMax),
     condition: clamp(state.condition - penalty, 0, LIMITS.conditionMax),
   };
 }

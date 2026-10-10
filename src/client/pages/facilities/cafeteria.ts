@@ -1,14 +1,25 @@
-import { CHEAPEST_MENU_PRICE, MENUS } from '../../../shared/master/menus';
+import { CHEAPEST_MENU_PRICE, menusOf } from '../../../shared/master/menus';
+import { SOUP_REFUSAL_LINE } from '../../../shared/master/npcs';
 import type { Me } from '../../../shared/types';
+import { bindMenuButtons, menuTableHtml } from '../../components/menu-table';
+import { npcHtml } from '../../components/npc';
 import { yen } from '../../format';
 import { postAction } from '../../layout';
 
 function soupKitchenHtml(me: Me): string {
+  if (me.money === 0 && me.deposit > 0) {
+    return `
+      <div class="box soup">
+        <h3>炊き出し</h3>
+        ${npcHtml('npc_soup', '銀行にお金があるんだろ？引き出してきな')}
+      </div>
+    `;
+  }
   if (me.money === 0) {
     return `
       <div class="box soup">
         <h3>炊き出し</h3>
-        <p>一文無しのあなたに、おにぎりを1個どうぞ。</p>
+        ${npcHtml('npc_soup')}
         <button type="button" id="soup">炊き出しの列に並ぶ</button>
       </div>
     `;
@@ -17,7 +28,7 @@ function soupKitchenHtml(me: Me): string {
     return `
       <div class="box soup">
         <h3>炊き出し</h3>
-        <p>炊き出しは一文無しの方限定です。</p>
+        ${npcHtml('npc_soup', SOUP_REFUSAL_LINE)}
         <p class="note">小銭しかないなら……<a href="#/facility/casino">賭場</a>で一か八か勝負してみては？</p>
       </div>
     `;
@@ -26,27 +37,11 @@ function soupKitchenHtml(me: Me): string {
 }
 
 export async function renderCafeteria(container: HTMLElement, me: Me, rerender: () => Promise<void>): Promise<void> {
-  const rows = MENUS.map(
-    (menu) => `
-      <tr>
-        <td>${menu.name}</td>
-        <td>空腹度 +${menu.hunger}${menu.weight > 0 ? ` / 体重 +${menu.weight}` : ''}</td>
-        <td>${yen(menu.price)}</td>
-        <td><button type="button" data-menu="${menu.id}">食べる</button></td>
-      </tr>
-    `,
-  ).join('');
-
   container.innerHTML = `
-    <p>持ち金: ${yen(me.money)}　空腹度: ${me.hunger} / 100</p>
-    <table class="table list">
-      <thead><tr><th>メニュー</th><th>効果</th><th>価格</th><th></th></tr></thead>
-      <tbody>${rows}</tbody>
-    </table>
+    <p>持ち金: ${yen(me.money)}　満腹度: ${me.fullness} / 100</p>
+    ${menuTableHtml(menusOf('cafeteria'), 'メニュー')}
     ${soupKitchenHtml(me)}
   `;
-  container.querySelectorAll<HTMLButtonElement>('[data-menu]').forEach((button) => {
-    button.addEventListener('click', () => postAction('/cafeteria/eat', { menuId: button.dataset.menu }, rerender));
-  });
+  bindMenuButtons(container, rerender);
   container.querySelector('#soup')?.addEventListener('click', () => postAction('/cafeteria/soup', {}, rerender));
 }

@@ -26,7 +26,7 @@ function cellHtml(cell: MapCellView, options: MapOptions): string {
     }
     case 'facility': {
       const facility = findFacility(cell.facilityId)!;
-      return `<a class="cell cell-facility" href="#/facility/${facility.id}" title="${facility.name}" aria-label="${facility.name}">${iconHtml(facility.id)}</a>`;
+      return `<a class="cell cell-facility" href="#/facility/${facility.id}" data-facility="${facility.id}" title="${facility.name}" aria-label="${facility.name}">${iconHtml(facility.id)}</a>`;
     }
   }
 }
@@ -42,4 +42,21 @@ export function mapHtml(cells: MapCellView[], options: MapOptions = {}): string 
       <span class="legend cell-owned"></span>他の住民の家（橙の屋根）
     </p>
   `;
+}
+
+// 施設にカーソルを合わせた（またはフォーカスした）ときに、hint に施設名と説明を表示する
+export function bindMapHint(container: HTMLElement, hint: HTMLElement): void {
+  container.querySelectorAll<HTMLElement>('[data-facility]').forEach((cell) => {
+    const show = () => {
+      const facility = findFacility(cell.dataset.facility!);
+      hint.textContent = facility ? `${facility.name}: ${facility.description}` : '';
+    };
+    const clear = () => {
+      hint.textContent = '';
+    };
+    cell.addEventListener('mouseenter', show);
+    cell.addEventListener('focus', show);
+    cell.addEventListener('mouseleave', clear);
+    cell.addEventListener('blur', clear);
+  });
 }

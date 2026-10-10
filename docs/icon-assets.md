@@ -45,9 +45,20 @@ assets/
 - `cafeteria`: 食堂
 - `casino`: 賭場
 - `realestate`: 不動産屋
+- `bank`: 銀行
+- `blackmarket`: 闇市場
+- `izakaya`: 居酒屋
 - `townhall`: 役場
 - `house`: 購入済みの土地に建つ家
 - `grass`: 空き地の草むら
+
+店主のアイコン（施設画面に 64px で表示）:
+
+- `npc_shop`: お店の店主 / `npc_job`: 職業安定所の相談員 / `npc_school`: 学校の先生
+- `npc_gym`: ジムのトレーナー / `npc_cafeteria`: 食堂のおばちゃん / `npc_casino`: 賭場の壺振り師
+- `npc_realestate`: 不動産屋の社長 / `npc_townhall`: 役場の職員 / `npc_izakaya`: 居酒屋の大将
+- `npc_bank`: 銀行の行員 / `npc_blackmarket`: 闇の商人
+- `npc_soup`: 炊き出しおじさん
 
 注意:
 

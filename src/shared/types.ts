@@ -10,15 +10,16 @@ export type Me = {
   id: number;
   name: string;
   money: number;
+  deposit: number;
   totalAssets: number;
-  job: { id: string; name: string };
+  job: { id: string; name: string; level: number }; // level: 今の職業の職業レベル
   bodyPower: Gauge;
   brainPower: Gauge;
   condition: number;
   height: number;
-  weight: number;
+  weight: number; // kg（0.1kg 単位）
   bmi: number;
-  hunger: number;
+  fullness: number;
   lover: UserRef | null;
   spouse: UserRef | null;
   abilities: Abilities;
@@ -44,6 +45,12 @@ export type JobView = {
   name: string;
   baseSalary: number;
   powerLabel: string;
+  weightChange: number; // kg（マイナスで減る）
+  depth: number; // 系統の深さ（基本職 = 0）
+  promotionFrom: string | null; // 昇進元の職業名
+  level: number; // この職業での職業レベル
+  exp: number;
+  nextExp: number | null; // 次のレベルに必要な経験値（最大レベルなら null）
   requirements: string[];
   unmet: string[];
   current: boolean;

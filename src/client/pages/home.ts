@@ -2,8 +2,9 @@ import { ABILITIES, ABILITY_CATEGORIES, type AbilityCategory } from '../../share
 import type { EventItem, MapCellView, Me, UserRef } from '../../shared/types';
 import { api } from '../api';
 import { requireLogin } from '../auth';
-import { mapHtml } from '../components/map';
+import { bindMapHint, mapHtml } from '../components/map';
 import { dateTime, gauge, yen } from '../format';
+import { formatKg } from '../../shared/weight';
 import { escapeHtml } from '../html';
 import { postAction, renderLayout } from '../layout';
 
@@ -14,14 +15,15 @@ function userName(user: UserRef | null): string {
 function statusTable(me: Me): string {
   const rows: Array<[string, string]> = [
     ['持ち金', yen(me.money)],
+    ['預金', yen(me.deposit)],
     ['総資産', yen(me.totalAssets)],
-    ['職業', escapeHtml(me.job.name)],
+    ['職業', me.job.id === 'none' ? escapeHtml(me.job.name) : `${escapeHtml(me.job.name)}（Lv${me.job.level}）`],
     ['身体パワー', gauge(me.bodyPower.current, me.bodyPower.max)],
     ['頭脳パワー', gauge(me.brainPower.current, me.brainPower.max)],
     ['コンディション', gauge(me.condition, 100)],
-    ['空腹度', gauge(me.hunger, 100)],
+    ['満腹度', gauge(me.fullness, 100)],
     ['身長', `${me.height} cm`],
-    ['体重', `${me.weight} kg`],
+    ['体重', formatKg(me.weight)],
     ['BMI', String(me.bmi)],
     ['恋人', userName(me.lover)],
     ['配偶者', userName(me.spouse)],
@@ -86,9 +88,8 @@ export async function renderHome(root: HTMLElement): Promise<void> {
       </section>
     </div>
     <section class="box">
-      <h2>町の地図</h2>
+      <h2>町の地図 <span class="map-hint" aria-live="polite"></span></h2>
       ${mapHtml(cells, { myId: me.id })}
-      <p class="note">施設をクリックすると中に入れます。</p>
     </section>
     <section class="box">
       <h2>出来事</h2>
@@ -96,6 +97,7 @@ export async function renderHome(root: HTMLElement): Promise<void> {
     </section>
   `;
 
+  bindMapHint(main, main.querySelector<HTMLElement>('.map-hint')!);
   const rerender = () => renderHome(root);
   main.querySelector('#work')!.addEventListener('click', () => postAction('/work', {}, rerender));
   main.querySelector('#rest')!.addEventListener('click', () => postAction('/rest', {}, rerender));

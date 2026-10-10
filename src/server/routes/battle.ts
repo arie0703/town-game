@@ -51,9 +51,9 @@ battleRoutes.post('/fight', requireAuth, async (c) => {
     const theirs = combatPower(opponent.abilities, opponent.user.condition);
     const rate = winRate(mine, theirs);
     const won = chance(rate);
-    const after = afterAction(user, FIGHT.hungerCost);
+    const after = afterAction(user, FIGHT.fullnessCost);
     const head = `${opponent.user.name}さんにストリートファイトを挑んだ（戦闘力 ${mine} vs ${theirs}、勝率 ${Math.round(rate * 100)}%）。`;
-    const base = { body_power: user.body_power - FIGHT.powerCost, hunger: after.hunger };
+    const base = { body_power: user.body_power - FIGHT.powerCost, fullness: after.fullness };
 
     if (won) {
       const prize = theirs * FIGHT.prizePerPower;

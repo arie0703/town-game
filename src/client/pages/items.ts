@@ -1,4 +1,5 @@
-import { findItem, ITEM_TYPE_LABEL } from '../../shared/master/items';
+import { compareItems, findItem, ITEM_TYPE_LABEL, type Item } from '../../shared/master/items';
+import { abilityEffectHtml, conditionEffectHtml } from '../components/effect';
 import type { InventoryItem } from '../../shared/types';
 import { api } from '../api';
 import { requireLogin } from '../auth';
@@ -9,15 +10,20 @@ export async function renderItems(root: HTMLElement): Promise<void> {
   if (!me) return;
   const inventory = await api.get<InventoryItem[]>('/items');
 
-  const rows = inventory
-    .map(({ itemId, quantity }) => {
-      const item = findItem(itemId);
-      if (!item) return '';
+  // 種類ごと（食事 → 能力アップ → 回復 → 薬）、同じ種類の中はマスタの定義順に並べる
+  const owned = inventory
+    .map(({ itemId, quantity }) => ({ item: findItem(itemId), quantity }))
+    .filter((o): o is { item: Item; quantity: number } => o.item !== undefined)
+    .sort((a, b) => compareItems(a.item, b.item));
+
+  const rows = owned
+    .map(({ item, quantity }) => {
       return `
         <tr>
           <td>${ITEM_TYPE_LABEL[item.effect.type]}</td>
           <td>${item.name}</td>
-          <td>${item.description}</td>
+          <td>${conditionEffectHtml(item.effect)}</td>
+          <td>${abilityEffectHtml(item.effect)}</td>
           <td>${quantity}</td>
           <td><button type="button" data-use="${item.id}">使う</button></td>
         </tr>
@@ -29,12 +35,12 @@ export async function renderItems(root: HTMLElement): Promise<void> {
   main.innerHTML = `
     <section class="box">
       <h2>所持アイテム</h2>
-      <p>空腹度: ${me.hunger} / 100　コンディション: ${me.condition} / 100　身体パワー: ${me.bodyPower.current} / ${me.bodyPower.max}　頭脳パワー: ${me.brainPower.current} / ${me.brainPower.max}</p>
+      <p>満腹度: ${me.fullness} / 100　コンディション: ${me.condition} / 100　身体パワー: ${me.bodyPower.current} / ${me.bodyPower.max}　頭脳パワー: ${me.brainPower.current} / ${me.brainPower.max}</p>
       ${
         inventory.length === 0
           ? '<p>アイテムを持っていません。<a href="#/facility/shop">お店</a>で買いましょう。</p>'
           : `<table class="table list">
-              <thead><tr><th>種類</th><th>アイテム</th><th>効果</th><th>個数</th><th></th></tr></thead>
+              <thead><tr><th>種類</th><th>アイテム</th><th>体調</th><th>能力</th><th>個数</th><th></th></tr></thead>
               <tbody>${rows}</tbody>
             </table>`
       }

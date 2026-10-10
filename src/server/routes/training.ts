@@ -1,65 +1,58 @@
 import { Hono } from 'hono';
-import { ABILITIES, type AbilityCategory, type AbilityKey } from '../../shared/abilities';
-import { BODY, TRAINING } from '../../shared/config';
+import type { Abilities } from '../../shared/abilities';
+import { LIMITS, TRAINING } from '../../shared/config';
+import { describeGain } from '../../shared/master/effects';
+import { findTraining } from '../../shared/master/trainings';
 import type { ActionResult } from '../../shared/types';
+import { formatKg } from '../../shared/weight';
 import { requireAuth, type AuthEnv } from '../auth';
 import { GameError } from '../game/errors';
 import { addAbilities, runAction } from '../game/player';
-import { afterAction } from '../game/status';
+import { addWeight, afterAction, clamp } from '../game/status';
 
-function trainingGain(condition: number): number {
-  return TRAINING.gainByCondition.find((g) => condition >= g.minCondition)!.gain;
-}
-
-async function readAbility(req: Request, category: AbilityCategory): Promise<{ key: AbilityKey; label: string }> {
-  const body = await req.json().catch(() => null);
-  const ability = ABILITIES.find((a) => a.key === body?.ability && a.category === category);
-  if (!ability) throw new GameError('その科目はありません');
-  return ability;
+// コンディションで上昇量を補正する（最低 +1）
+function scaledGain(gain: Partial<Abilities>, condition: number): Partial<Abilities> {
+  const { rate } = TRAINING.rateByCondition.find((r) => condition >= r.minCondition)!;
+  const result: Partial<Abilities> = {};
+  for (const [key, value] of Object.entries(gain) as Array<[keyof Abilities, number]>) {
+    result[key] = Math.max(1, Math.round(value * rate));
+  }
+  return result;
 }
 
 export const trainingRoutes = new Hono<AuthEnv>();
 
-trainingRoutes.post('/school', requireAuth, async (c) => {
-  const ability = await readAbility(c.req.raw, 'brain');
-  const message = await runAction(c.get('userId'), ({ user, abilities }) => {
-    if (user.brain_power < TRAINING.powerCost) throw new GameError('頭脳パワーが足りません。休息しましょう');
-    if (user.money < TRAINING.fee) throw new GameError('授業料が足りません');
+// ジムの種目・学校の授業を受ける
+trainingRoutes.post('/training', requireAuth, async (c) => {
+  const body = await c.req.json().catch(() => null);
+  const training = typeof body?.trainingId === 'string' ? findTraining(body.trainingId) : undefined;
+  if (!training) throw new GameError('その種目・授業はありません');
+  const isGym = training.facility === 'gym';
+  const powerColumn = isGym ? 'body_power' : 'brain_power';
 
-    const gain = trainingGain(user.condition);
-    const after = afterAction(user, TRAINING.schoolHungerCost);
+  const message = await runAction(c.get('userId'), ({ user, abilities }) => {
+    if (user[powerColumn] < training.powerCost) {
+      throw new GameError(`${isGym ? '身体' : '頭脳'}パワーが足りません。休息しましょう`);
+    }
+    if (user.money < training.fee) throw new GameError(isGym ? '利用料が足りません' : '授業料が足りません');
+
+    const gain = scaledGain(training.gain, user.condition);
+    const after = afterAction(user, training.fullnessCost);
+    const weightG = addWeight(user.weight_g, training.weight ?? 0);
+    const extras = [
+      training.condition ? `コンディション ${training.condition > 0 ? '+' : ''}${training.condition}` : '',
+      training.weight ? `体重 ${training.weight > 0 ? '+' : '-'}${formatKg(Math.abs(training.weight))}` : '',
+    ].filter(Boolean);
     return {
       user: {
-        money: user.money - TRAINING.fee,
-        brain_power: user.brain_power - TRAINING.powerCost,
-        hunger: after.hunger,
-        condition: after.condition,
+        money: user.money - training.fee,
+        [powerColumn]: user[powerColumn] - training.powerCost,
+        fullness: after.fullness,
+        condition: clamp(after.condition + (training.condition ?? 0), 0, LIMITS.conditionMax),
+        weight_g: weightG,
       },
-      abilities: addAbilities(abilities, { [ability.key]: gain }),
-      message: `学校で${ability.label}を勉強した（${ability.label} +${gain}）`,
-    };
-  });
-  return c.json<ActionResult>({ message });
-});
-
-trainingRoutes.post('/gym', requireAuth, async (c) => {
-  const ability = await readAbility(c.req.raw, 'body');
-  const message = await runAction(c.get('userId'), ({ user, abilities }) => {
-    if (user.body_power < TRAINING.powerCost) throw new GameError('身体パワーが足りません。休息しましょう');
-    if (user.money < TRAINING.fee) throw new GameError('利用料が足りません');
-
-    const gain = trainingGain(user.condition);
-    const after = afterAction(user, TRAINING.gymHungerCost);
-    return {
-      user: {
-        money: user.money - TRAINING.fee,
-        body_power: user.body_power - TRAINING.powerCost,
-        weight: Math.max(BODY.minWeight, user.weight - TRAINING.gymWeightLoss),
-        hunger: after.hunger,
-        condition: after.condition,
-      },
-      abilities: addAbilities(abilities, { [ability.key]: gain }),
-      message: `ジムで${ability.label}を鍛えた（${ability.label} +${gain}）`,
+      abilities: addAbilities(abilities, gain),
+      message: `${isGym ? 'ジムで' : '学校で'}${training.name}${isGym ? 'をした' : 'を受講した'}（${[describeGain(gain), ...extras].join(' / ')}）`,
     };
   });
   return c.json<ActionResult>({ message });

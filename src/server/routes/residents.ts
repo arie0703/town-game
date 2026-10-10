@@ -9,7 +9,7 @@ export const residentRoutes = new Hono<AuthEnv>();
 
 // 住民一覧（総資産ランキング順）
 residentRoutes.get('/residents', requireAuth, async (c) => {
-  const users = await db.selectFrom('users').select(['id', 'name', 'money', 'job_id', 'lover_id', 'spouse_id']).execute();
+  const users = await db.selectFrom('users').select(['id', 'name', 'money', 'deposit', 'job_id', 'lover_id', 'spouse_id']).execute();
   const landValues = await landValuesByOwner(db);
   const refs = new Map<number, UserRef>(users.map((u) => [u.id, { id: u.id, name: u.name }]));
   const ref = (id: number | null) => (id === null ? null : (refs.get(id) ?? null));
@@ -20,7 +20,7 @@ residentRoutes.get('/residents', requireAuth, async (c) => {
       id: u.id,
       name: u.name,
       jobName: jobName(u.job_id),
-      totalAssets: u.money + (landValues.get(u.id) ?? 0),
+      totalAssets: u.money + u.deposit + (landValues.get(u.id) ?? 0),
       lover: ref(u.lover_id),
       spouse: ref(u.spouse_id),
     }))

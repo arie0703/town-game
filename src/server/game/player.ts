@@ -5,22 +5,29 @@ import { db, type DB, type UsersTable } from '../db';
 import { addEvent } from '../events';
 import { GameError } from './errors';
 
-// items: 所持アイテム（itemId → 個数）
-export type Player = { user: Selectable<UsersTable>; abilities: Abilities; items: Record<string, number> };
+// items: 所持アイテム（itemId → 個数）、jobExp: 職業ごとの経験値（jobId → 経験値）
+export type Player = {
+  user: Selectable<UsersTable>;
+  abilities: Abilities;
+  items: Record<string, number>;
+  jobExp: Record<string, number>;
+};
 
 export type PlayerChange = {
   user?: Updateable<UsersTable>;
   abilities?: Partial<Abilities>;
   // 変更後のアイテム個数（itemId → 個数。0 なら削除）
   items?: Record<string, number>;
+  // 変更後の職業ごとの経験値（jobId → 経験値）
+  jobExp?: Record<string, number>;
   message: string;
 };
 
-// 能力値を加算する（上限が設定されていれば頭打ち）
+// 能力値を加算する（0 未満にはしない。上限が設定されていれば頭打ち）
 export function addAbilities(base: Abilities, gain: Partial<Abilities>): Partial<Abilities> {
   const result: Partial<Abilities> = {};
   for (const [key, value] of Object.entries(gain) as Array<[keyof Abilities, number]>) {
-    const next = base[key] + value;
+    const next = Math.max(0, base[key] + value);
     result[key] = LIMITS.abilityMax === null ? next : Math.min(next, LIMITS.abilityMax);
   }
   return result;
@@ -37,7 +44,9 @@ export async function loadPlayer(executor: Kysely<DB>, userId: number): Promise<
     .where('user_id', '=', userId)
     .execute();
   const items = Object.fromEntries(itemRows.map((r) => [r.item_id, r.quantity]));
-  return { user, abilities, items };
+  const expRows = await executor.selectFrom('user_job_exp').select(['job_id', 'exp']).where('user_id', '=', userId).execute();
+  const jobExp = Object.fromEntries(expRows.map((r) => [r.job_id, r.exp]));
+  return { user, abilities, items, jobExp };
 }
 
 // アクション共通処理: 読み込み → 計算（fn）→ 書き戻し → 出来事ログ を1トランザクションで行う
@@ -61,6 +70,13 @@ export async function runAction(userId: number, fn: (player: Player) => PlayerCh
           .onConflict((oc) => oc.columns(['user_id', 'item_id']).doUpdateSet({ quantity }))
           .execute();
       }
+    }
+    for (const [jobId, exp] of Object.entries(change.jobExp ?? {})) {
+      await trx
+        .insertInto('user_job_exp')
+        .values({ user_id: userId, job_id: jobId, exp })
+        .onConflict((oc) => oc.columns(['user_id', 'job_id']).doUpdateSet({ exp }))
+        .execute();
     }
     await addEvent(trx, userId, change.message);
     return change.message;

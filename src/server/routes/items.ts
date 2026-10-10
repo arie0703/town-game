@@ -1,14 +1,15 @@
 import { Hono } from 'hono';
 import { LIMITS, SOUP_KITCHEN } from '../../shared/config';
 import { yen } from '../../shared/format';
-import { findItem } from '../../shared/master/items';
-import { findMenu } from '../../shared/master/menus';
+import { describeItem, findItem } from '../../shared/master/items';
+import { describeMenu, findMenu } from '../../shared/master/menus';
 import type { ActionResult, InventoryItem } from '../../shared/types';
 import { requireAuth, type AuthEnv } from '../auth';
 import { db } from '../db';
 import { GameError } from '../game/errors';
-import { addAbilities, loadPlayer, runAction } from '../game/player';
-import { bmi, clamp, conditionRecovery, maxPowers } from '../game/status';
+import { applyEffect } from '../game/effects';
+import { loadPlayer, runAction } from '../game/player';
+import { clamp } from '../game/status';
 
 const MAX_PURCHASE_QUANTITY = 99;
 
@@ -16,8 +17,8 @@ async function readBody(req: Request): Promise<Record<string, unknown>> {
   return ((await req.json().catch(() => null)) ?? {}) as Record<string, unknown>;
 }
 
-function assertNotFull(hunger: number): void {
-  if (hunger >= LIMITS.hungerMax) throw new GameError('お腹いっぱいで食べられません');
+function assertNotFull(fullness: number): void {
+  if (fullness >= LIMITS.fullnessMax) throw new GameError('お腹いっぱいで食べられません');
 }
 
 export const itemRoutes = new Hono<AuthEnv>();
@@ -45,7 +46,7 @@ itemRoutes.post('/shop/buy', requireAuth, async (c) => {
     return {
       user: { money: user.money - total },
       items: { [item.id]: (items[item.id] ?? 0) + quantity },
-      message: `お店で${item.name}を${quantity}個買った（${yen(total)}）`,
+      message: `${item.shop === 'blackmarket' ? '闇市場' : 'お店'}で${item.name}を${quantity}個買った（${yen(total)}）`,
     };
   });
   return c.json<ActionResult>({ message });
@@ -57,59 +58,37 @@ itemRoutes.post('/items/use', requireAuth, async (c) => {
   const item = typeof body.itemId === 'string' ? findItem(body.itemId) : undefined;
   if (!item) throw new GameError('そのアイテムはありません');
 
-  const message = await runAction(c.get('userId'), ({ user, abilities, items }) => {
-    const owned = items[item.id] ?? 0;
+  const message = await runAction(c.get('userId'), (player) => {
+    const owned = player.items[item.id] ?? 0;
     if (owned <= 0) throw new GameError(`${item.name}を持っていません`);
-    const consumed = { [item.id]: owned - 1 };
-    const effect = item.effect;
-
-    switch (effect.type) {
-      case 'food':
-        assertNotFull(user.hunger);
-        return {
-          user: {
-            hunger: clamp(user.hunger + effect.hunger, 0, LIMITS.hungerMax),
-            weight: user.weight + effect.weight,
-          },
-          items: consumed,
-          message: `${item.name}を食べた`,
-        };
-      case 'ability':
-        return { abilities: addAbilities(abilities, effect.gain), items: consumed, message: `${item.name}を使った（${item.description}）` };
-      case 'recovery': {
-        const max = maxPowers(abilities);
-        const condition = conditionRecovery(effect.condition ?? 0, bmi(user.height, user.weight));
-        return {
-          user: {
-            body_power: Math.min(max.body, user.body_power + (effect.bodyPower ?? 0)),
-            brain_power: Math.min(max.brain, user.brain_power + (effect.brainPower ?? 0)),
-            condition: clamp(user.condition + condition, 0, LIMITS.conditionMax),
-          },
-          items: consumed,
-          message: `${item.name}を使った`,
-        };
-      }
-    }
+    if (item.effect.type === 'food') assertNotFull(player.user.fullness);
+    const { user, abilities } = applyEffect(player, item.effect);
+    const verb = item.effect.type === 'food' ? '食べた' : '使った';
+    return {
+      user,
+      abilities,
+      items: { [item.id]: owned - 1 },
+      message: `${item.name}を${verb}（${describeItem(item)}）`,
+    };
   });
   return c.json<ActionResult>({ message });
 });
 
-// 食堂で食事する
-itemRoutes.post('/cafeteria/eat', requireAuth, async (c) => {
+// 食堂・居酒屋で注文する
+itemRoutes.post('/eat', requireAuth, async (c) => {
   const body = await readBody(c.req.raw);
   const menu = typeof body.menuId === 'string' ? findMenu(body.menuId) : undefined;
   if (!menu) throw new GameError('そのメニューはありません');
 
-  const message = await runAction(c.get('userId'), ({ user }) => {
-    assertNotFull(user.hunger);
-    if (user.money < menu.price) throw new GameError('お金が足りません');
+  const message = await runAction(c.get('userId'), (player) => {
+    // お酒は別腹（満腹でも飲める）
+    if (!menu.drink) assertNotFull(player.user.fullness);
+    if (player.user.money < menu.price) throw new GameError('お金が足りません');
+    const change = applyEffect(player, menu.effect);
     return {
-      user: {
-        money: user.money - menu.price,
-        hunger: clamp(user.hunger + menu.hunger, 0, LIMITS.hungerMax),
-        weight: user.weight + menu.weight,
-      },
-      message: `食堂で${menu.name}を食べた（${yen(menu.price)}）`,
+      user: { ...change.user, money: player.user.money - menu.price },
+      abilities: change.abilities,
+      message: `${menu.shop === 'izakaya' ? '居酒屋' : '食堂'}で${menu.name}を${menu.drink ? '飲んだ' : '食べた'}（${yen(menu.price)}、${describeMenu(menu)}）`,
     };
   });
   return c.json<ActionResult>({ message });
@@ -119,10 +98,11 @@ itemRoutes.post('/cafeteria/eat', requireAuth, async (c) => {
 itemRoutes.post('/cafeteria/soup', requireAuth, async (c) => {
   const message = await runAction(c.get('userId'), ({ user }) => {
     if (user.money !== 0) throw new GameError('炊き出しは一文無しの方限定です');
-    assertNotFull(user.hunger);
+    if (user.deposit > 0) throw new GameError('銀行に預金がある方は炊き出しを利用できません');
+    assertNotFull(user.fullness);
     return {
       user: {
-        hunger: clamp(user.hunger + SOUP_KITCHEN.hungerRecovery, 0, LIMITS.hungerMax),
+        fullness: clamp(user.fullness + SOUP_KITCHEN.fullnessRecovery, 0, LIMITS.fullnessMax),
         soup_kitchen_count: user.soup_kitchen_count + 1,
       },
       message: `炊き出しの列に並んだ（おにぎり1個をもらった。通算${user.soup_kitchen_count + 1}回目）`,

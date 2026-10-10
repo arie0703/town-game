@@ -1,20 +1,22 @@
 import Database from 'better-sqlite3';
 import { Kysely, SqliteDialect, type Generated } from 'kysely';
 import { ABILITIES, type AbilityKey } from '../shared/abilities';
+import { JOBS } from '../shared/master/jobs';
 
 export interface UsersTable {
   id: Generated<number>;
   name: string;
   password_hash: string;
   money: number;
+  deposit: number; // 銀行の預金
   soup_kitchen_count: number;
   job_id: string;
   body_power: number;
   brain_power: number;
   condition: number;
   height: number;
-  weight: number;
-  hunger: number;
+  weight_g: number; // 体重（グラム）
+  fullness: number;
   lover_id: number | null;
   spouse_id: number | null;
   created_at: string;
@@ -53,6 +55,12 @@ export interface RelationshipRequestsTable {
   created_at: string;
 }
 
+export interface UserJobExpTable {
+  user_id: number;
+  job_id: string;
+  exp: number;
+}
+
 export interface DB {
   users: UsersTable;
   lands: LandsTable;
@@ -60,6 +68,7 @@ export interface DB {
   abilities: AbilitiesTable;
   events: EventsTable;
   user_items: UserItemsTable;
+  user_job_exp: UserJobExpTable;
 }
 
 const dbPath = process.env.DB_PATH ?? 'town.sqlite';
@@ -77,18 +86,28 @@ export async function initDb(): Promise<void> {
     .addColumn('name', 'text', (col) => col.notNull().unique())
     .addColumn('password_hash', 'text', (col) => col.notNull())
     .addColumn('money', 'integer', (col) => col.notNull())
+    .addColumn('deposit', 'integer', (col) => col.notNull().defaultTo(0))
     .addColumn('soup_kitchen_count', 'integer', (col) => col.notNull().defaultTo(0))
     .addColumn('job_id', 'text', (col) => col.notNull())
     .addColumn('body_power', 'integer', (col) => col.notNull())
     .addColumn('brain_power', 'integer', (col) => col.notNull())
     .addColumn('condition', 'integer', (col) => col.notNull())
     .addColumn('height', 'integer', (col) => col.notNull())
-    .addColumn('weight', 'integer', (col) => col.notNull())
-    .addColumn('hunger', 'integer', (col) => col.notNull())
+    .addColumn('weight_g', 'integer', (col) => col.notNull())
+    .addColumn('fullness', 'integer', (col) => col.notNull())
     .addColumn('lover_id', 'integer', (col) => col.references('users.id'))
     .addColumn('spouse_id', 'integer', (col) => col.references('users.id'))
     .addColumn('created_at', 'text', (col) => col.notNull())
     .execute();
+
+  // 後から追加した列: 既存の DB に無ければ追加する
+  const usersTable = (await db.introspection.getTables()).find((t) => t.name === 'users');
+  if (usersTable && !usersTable.columns.some((col) => col.name === 'deposit')) {
+    await db.schema
+      .alterTable('users')
+      .addColumn('deposit', 'integer', (col) => col.notNull().defaultTo(0))
+      .execute();
+  }
 
   let abilities = db.schema
     .createTable('abilities')
@@ -137,9 +156,29 @@ export async function initDb(): Promise<void> {
     .execute();
 
   await db.schema
+    .createTable('user_job_exp')
+    .ifNotExists()
+    .addColumn('user_id', 'integer', (col) => col.notNull().references('users.id'))
+    .addColumn('job_id', 'text', (col) => col.notNull())
+    .addColumn('exp', 'integer', (col) => col.notNull())
+    .addPrimaryKeyConstraint('user_job_exp_pk', ['user_id', 'job_id'])
+    .execute();
+
+  await db.schema
     .createIndex('events_user_id_idx')
     .ifNotExists()
     .on('events')
     .columns(['user_id', 'id'])
+    .execute();
+
+  // 職業 ID の変更: スポーツ選手（athlete）→ フィットネストレーナー（fitness_trainer）
+  await db.updateTable('users').set({ job_id: 'fitness_trainer' }).where('job_id', '=', 'athlete').execute();
+  await db.updateTable('user_job_exp').set({ job_id: 'fitness_trainer' }).where('job_id', '=', 'athlete').execute();
+
+  // 削除した職業（会社員系統など）に就いている住民は無職に戻す
+  await db
+    .updateTable('users')
+    .set({ job_id: 'none' })
+    .where('job_id', 'not in', JOBS.map((j) => j.id))
     .execute();
 }

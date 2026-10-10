@@ -367,3 +367,165 @@ select {
   font: inherit;
   padding: 2px 4px;
 }
+
+/* 店主とセリフ */
+.npc {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 8px 0 12px;
+}
+
+.npc-icon {
+  /* 32×32 のドット絵を2倍で表示する */
+  width: 64px;
+  height: 64px;
+  flex-shrink: 0;
+  background: #fdf6e3;
+  border: 1px solid var(--border);
+}
+
+.npc-bubble {
+  position: relative;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 6px 10px;
+}
+
+.npc-bubble::before {
+  content: '';
+  position: absolute;
+  left: -7px;
+  top: 50%;
+  margin-top: -6px;
+  border: 6px solid transparent;
+  border-right-color: var(--border);
+  border-left: 0;
+}
+
+.npc-name {
+  font-size: 11px;
+  color: #666;
+}
+
+.table caption + thead th {
+  border-top: none;
+}
+
+.bank-balance {
+  max-width: 360px;
+}
+
+/* 闇市場は暗い配色にする */
+.facility-blackmarket {
+  background: #1e1630;
+  color: #e9d5ff;
+  border-color: #6b3f99;
+}
+
+.facility-blackmarket a {
+  color: #c084fc;
+}
+
+.facility-blackmarket .note {
+  color: #a78bba;
+}
+
+.facility-blackmarket .table {
+  background: #2a1f40;
+}
+
+.facility-blackmarket .table caption,
+.facility-blackmarket .table th {
+  background: #3b2556;
+  color: #e9d5ff;
+}
+
+.facility-blackmarket .table th,
+.facility-blackmarket .table td {
+  border-color: #6b3f99;
+}
+
+.facility-blackmarket .npc-icon,
+.facility-blackmarket .npc-bubble {
+  background: #2a1f40;
+  border-color: #6b3f99;
+  color: #e9d5ff;
+}
+
+.facility-blackmarket .npc-name {
+  color: #a78bba;
+}
+
+.job-indent {
+  display: inline-block;
+  text-align: right;
+  padding-right: 4px;
+  color: #888;
+}
+
+/* 「町の地図」見出しの横に出す施設の説明 */
+.map-hint {
+  margin-left: 8px;
+  font-size: 12px;
+  font-weight: normal;
+  color: #666;
+}
+
+/* 効果の表示: 回復 / 体 / 能力 の行ごとに、増減を色付きのチップで並べる */
+.effect-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+}
+
+.effect-row + .effect-row {
+  margin-top: 3px;
+}
+
+.chip {
+  display: inline-block;
+  padding: 0 6px;
+  border: 1px solid;
+  border-radius: 3px;
+  font-size: 12px;
+  line-height: 1.6;
+  white-space: nowrap;
+}
+
+.chip-plus {
+  color: #1e6b34;
+  background: #e8f5ec;
+  border-color: #9fd3ae;
+}
+
+.chip-minus {
+  color: #b00020;
+  background: #fdecee;
+  border-color: #f0a5ae;
+}
+
+.chip-neutral {
+  color: #555;
+  background: #f1f1f1;
+  border-color: #cfcfcf;
+}
+
+.facility-blackmarket .chip-plus {
+  color: #86efac;
+  background: #14301f;
+  border-color: #2f6b45;
+}
+
+.facility-blackmarket .chip-minus {
+  color: #fda4af;
+  background: #3a1520;
+  border-color: #7a2d3f;
+}
+
+.facility-blackmarket .chip-neutral {
+  color: #d4c4e6;
+  background: #2f2445;
+  border-color: #5b4a78;
+}

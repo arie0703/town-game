@@ -4,17 +4,17 @@ export const INITIAL = {
   money: 10_000,
   ability: 20,
   heightRange: [150, 200], // cm
-  weightRange: [45, 90], // kg
+  weightRange: [45, 90], // kg（0.1kg 単位のランダム）
   jobId: 'none',
   condition: 100,
-  hunger: 50,
+  fullness: 50,
 } as const;
 
 export const LIMITS = {
   // 能力値の上限（null = 上限なし）
   abilityMax: null as number | null,
   conditionMax: 100,
-  hungerMax: 100,
+  fullnessMax: 100,
 } as const;
 
 export const ACCOUNT = {
@@ -29,9 +29,9 @@ export const STATUS = {
   // BMI の標準範囲。外れるとコンディションの回復量が減る
   bmiNormalRange: [18.5, 25],
   bmiOutOfRangeRecoveryRate: 0.5,
-  // 空腹度がこの値未満で行動すると、コンディションが下がる
-  hungryThreshold: 20,
-  hungryConditionPenalty: 5,
+  // 満腹度がこの値未満で行動すると、コンディションが下がる
+  lowFullnessThreshold: 20,
+  lowFullnessConditionPenalty: 5,
 } as const;
 
 export const WORK = {
@@ -42,31 +42,28 @@ export const WORK = {
 
 export const REST = {
   powerRecovery: 50, // 身体パワー・頭脳パワーそれぞれの回復量
-  conditionRecovery: 20, // BMI 補正前の値
-  hungerCost: 15,
+  conditionRecovery: 30, // BMI 補正前の値
+  fullnessCost: 5,
 } as const;
 
 export const TRAINING = {
-  // 学校・ジム共通
-  powerCost: 20,
-  fee: 500,
-  // コンディションに応じた能力の上昇量（上から順に判定）
-  gainByCondition: [
-    { minCondition: 80, gain: 3 },
-    { minCondition: 50, gain: 2 },
-    { minCondition: 0, gain: 1 },
+  // コンディションに応じた能力上昇の倍率（上から順に判定）。種目ごとの上昇量はマスタ（trainings.ts）で定義
+  rateByCondition: [
+    { minCondition: 80, rate: 1 },
+    { minCondition: 50, rate: 0.6 },
+    { minCondition: 0, rate: 0.3 },
   ],
-  schoolHungerCost: 5,
-  gymHungerCost: 10,
-  gymWeightLoss: 1,
 } as const;
 
 export const BODY = {
-  minWeight: 30,
+  minWeight: 30, // kg
+  maxWeight: 200, // kg
+  minHeight: 120, // cm
+  maxHeight: 220, // cm
 } as const;
 
 export const SOUP_KITCHEN = {
-  hungerRecovery: 30,
+  fullnessRecovery: 30,
 } as const;
 
 export const CHOHAN = {
@@ -75,10 +72,15 @@ export const CHOHAN = {
 
 export const FIGHT = {
   powerCost: 30,
-  hungerCost: 15,
+  fullnessCost: 15,
   // 戦闘力 = (身体合計 + 下記能力の合計) × コンディション補正
   extraWeightAbilities: ['power', 'speed', 'arm', 'leg'],
   winRateRange: [0.05, 0.95],
   prizePerPower: 10,
   loseConditionDamage: 30,
+} as const;
+
+export const JOB_LEVEL = {
+  // 職業レベルの区切り（経験値）。1回働くと経験値 +1。左から Lv1, Lv2, ...
+  expThresholds: [0, 10, 30, 60, 100],
 } as const;
