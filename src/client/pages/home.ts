@@ -6,7 +6,7 @@ import { bindMapHint, mapHtml } from '../components/map';
 import { dateTime, gauge, yen } from '../format';
 import { formatKg } from '../../shared/weight';
 import { escapeHtml } from '../html';
-import { postAction, renderLayout } from '../layout';
+import { postAction, postActionRepeat, renderLayout } from '../layout';
 
 function userName(user: UserRef | null): string {
   return user ? escapeHtml(user.name) : 'なし';
@@ -17,6 +17,7 @@ function statusTable(me: Me): string {
     ['持ち金', yen(me.money)],
     ['預金', yen(me.deposit)],
     ['総資産', yen(me.totalAssets)],
+    ['善悪', `${me.goodness.rank}（${me.goodness.value}）`],
     ['職業', me.job.id === 'none' ? escapeHtml(me.job.name) : `${escapeHtml(me.job.name)}（Lv${me.job.level}）`],
     ['身体パワー', gauge(me.bodyPower.current, me.bodyPower.max)],
     ['頭脳パワー', gauge(me.brainPower.current, me.brainPower.max)],
@@ -75,6 +76,7 @@ export async function renderHome(root: HTMLElement): Promise<void> {
           <div class="actions">
             <button type="button" id="work"${me.job.id === 'none' ? ' disabled title="職業安定所で仕事を探しましょう"' : ''}>仕事</button>
             <button type="button" id="rest">休息</button>
+            <button type="button" id="rest-full" title="元気いっぱいになるまで休息をくり返す">しっかり休む</button>
             <a class="button" href="#/items">アイテム</a>
             <a class="button" href="#/fight">ストリートファイト</a>
             <a class="button" href="#/love">恋愛</a>
@@ -101,4 +103,7 @@ export async function renderHome(root: HTMLElement): Promise<void> {
   const rerender = () => renderHome(root);
   main.querySelector('#work')!.addEventListener('click', () => postAction('/work', {}, rerender));
   main.querySelector('#rest')!.addEventListener('click', () => postAction('/rest', {}, rerender));
+  main.querySelector('#rest-full')!.addEventListener('click', () =>
+    postActionRepeat('/rest', {}, rerender, { label: '休息' }),
+  );
 }

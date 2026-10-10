@@ -17,25 +17,25 @@ export const bankRoutes = new Hono<AuthEnv>();
 // 預け入れ
 bankRoutes.post('/bank/deposit', requireAuth, async (c) => {
   const amount = await readAmount(c.req.raw);
-  const message = await runAction(c.get('userId'), ({ user }) => {
+  const result = await runAction(c.get('userId'), ({ user }) => {
     if (amount > user.money) throw new GameError('持ち金が足りません');
     return {
       user: { money: user.money - amount, deposit: user.deposit + amount },
       message: `銀行に${yen(amount)}を預けた（預金残高 ${yen(user.deposit + amount)}）`,
     };
   });
-  return c.json<ActionResult>({ message });
+  return c.json<ActionResult>(result);
 });
 
 // 引き出し
 bankRoutes.post('/bank/withdraw', requireAuth, async (c) => {
   const amount = await readAmount(c.req.raw);
-  const message = await runAction(c.get('userId'), ({ user }) => {
+  const result = await runAction(c.get('userId'), ({ user }) => {
     if (amount > user.deposit) throw new GameError('預金残高が足りません');
     return {
       user: { money: user.money + amount, deposit: user.deposit - amount },
       message: `銀行から${yen(amount)}を引き出した（預金残高 ${yen(user.deposit - amount)}）`,
     };
   });
-  return c.json<ActionResult>({ message });
+  return c.json<ActionResult>(result);
 });

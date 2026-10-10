@@ -44,6 +44,8 @@ export const REST = {
   powerRecovery: 50, // 身体パワー・頭脳パワーそれぞれの回復量
   conditionRecovery: 30, // BMI 補正前の値
   fullnessCost: 5,
+  // 満腹度 0 でも休めるが、コンディションの回復量はこの倍率になる（パワーは通常どおり）
+  hungryConditionRate: 0.5,
 } as const;
 
 export const TRAINING = {
@@ -83,4 +85,9 @@ export const FIGHT = {
 export const JOB_LEVEL = {
   // 職業レベルの区切り（経験値）。1回働くと経験値 +1。左から Lv1, Lv2, ...
   expThresholds: [0, 10, 30, 60, 100],
+} as const;
+
+export const RANDOM_EVENT = {
+  // 対象の行動1回あたりの発生確率（1回の行動で起きるイベントは最大1つ）
+  rate: 0.08,
 } as const;

@@ -10,11 +10,14 @@ mapRoutes.get('/map', requireAuth, async (c) => {
   const lands = await db
     .selectFrom('lands')
     .innerJoin('users', 'users.id', 'lands.owner_id')
-    .select(['lands.cell_id', 'users.id', 'users.name'])
+    .select(['lands.cell_id', 'lands.building', 'lands.store_kind', 'users.id', 'users.name'])
     .execute();
-  const owners = new Map<number, UserRef>(lands.map((l) => [l.cell_id, { id: l.id, name: l.name }]));
-  const cells: MapCellView[] = MAP_CELLS.map((cell) =>
-    cell.type === 'lot' ? { ...cell, owner: owners.get(cell.id) ?? null } : cell,
-  );
+  const byCell = new Map(lands.map((l) => [l.cell_id, l]));
+  const cells: MapCellView[] = MAP_CELLS.map((cell) => {
+    if (cell.type !== 'lot') return cell;
+    const land = byCell.get(cell.id);
+    const owner: UserRef | null = land ? { id: land.id, name: land.name } : null;
+    return { ...cell, owner, building: land?.building ?? null, storeKind: land?.store_kind ?? null };
+  });
   return c.json(cells);
 });

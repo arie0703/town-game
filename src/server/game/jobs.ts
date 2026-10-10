@@ -2,6 +2,7 @@ import type { Abilities } from '../../shared/abilities';
 import { ABILITIES } from '../../shared/abilities';
 import { WORK } from '../../shared/config';
 import { yen } from '../../shared/format';
+import { goodnessRank } from '../../shared/goodness';
 import { formatKg } from '../../shared/weight';
 import { findJob, jobLevel, type Job } from '../../shared/master/jobs';
 import type { Player } from './player';
@@ -14,7 +15,7 @@ function abilityLabel(key: string): string {
 // 就職・昇進の判定に使う住民の状態
 export type JobContext = { player: Player; totalAssets: number };
 
-// 就職条件を「数学 50以上」のような表示用の文字列と、満たしているかの判定結果で返す
+// 就職条件を「論理力 50以上」のような表示用の文字列と、満たしているかの判定結果で返す
 function requirementChecks(job: Job, { player, totalAssets }: JobContext): Array<{ label: string; met: boolean }> {
   const { user, abilities, jobExp } = player;
   const r = job.requirements;
@@ -41,6 +42,9 @@ function requirementChecks(job: Job, { player, totalAssets }: JobContext): Array
   }
   if (r.weightMin !== undefined) {
     checks.push({ label: `体重 ${formatKg(r.weightMin)}以上`, met: user.weight_g >= r.weightMin * 1000 });
+  }
+  if (r.goodnessMin !== undefined) {
+    checks.push({ label: `善悪 ${goodnessRank(r.goodnessMin)}以上`, met: user.goodness >= r.goodnessMin });
   }
   if (r.bmiRange) {
     const [min, max] = r.bmiRange;

@@ -1,5 +1,6 @@
 import { Hono } from 'hono';
 import { ABILITIES, type Abilities } from '../../shared/abilities';
+import { goodnessRank } from '../../shared/goodness';
 import { jobLevel, jobName } from '../../shared/master/jobs';
 import type { EventItem, Me, UserRef } from '../../shared/types';
 import { clearLoginCookie, requireAuth, type AuthEnv } from '../auth';
@@ -33,8 +34,9 @@ export async function loadMe(userId: number): Promise<Me | null> {
     name: user.name,
     money: user.money,
     deposit: user.deposit,
-    // 総資産 = 持ち金 + 預金 + 所有土地の評価額
+    // 総資産 = 持ち金 + 預金 + 所有物件（土地 + 建物）の評価額
     totalAssets: user.money + user.deposit + (await landValueOf(db, user.id)),
+    goodness: { value: user.goodness, rank: goodnessRank(user.goodness) },
     job: { id: user.job_id, name: jobName(user.job_id), level: jobLevel(jobExp?.exp ?? 0) },
     bodyPower: { current: user.body_power, max: powers.body },
     brainPower: { current: user.brain_power, max: powers.brain },

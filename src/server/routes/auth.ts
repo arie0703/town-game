@@ -2,6 +2,7 @@ import bcrypt from 'bcryptjs';
 import { Hono } from 'hono';
 import { ABILITIES, type Abilities } from '../../shared/abilities';
 import { ACCOUNT, INITIAL } from '../../shared/config';
+import { GOODNESS } from '../../shared/goodness';
 import { clearLoginCookie, setLoginCookie, type AuthEnv } from '../auth';
 import { db } from '../db';
 import { addEvent } from '../events';
@@ -55,6 +56,7 @@ authRoutes.post('/register', async (c) => {
         password_hash: passwordHash,
         money: INITIAL.money,
         deposit: 0,
+        goodness: GOODNESS.initial,
         soup_kitchen_count: 0,
         job_id: INITIAL.jobId,
         body_power: powers.body,

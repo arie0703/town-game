@@ -1,6 +1,7 @@
 import Database from 'better-sqlite3';
 import { Kysely, SqliteDialect, type Generated } from 'kysely';
 import { ABILITIES, type AbilityKey } from '../shared/abilities';
+import type { BuildingType, StoreKind } from '../shared/master/buildings';
 import { JOBS } from '../shared/master/jobs';
 
 export interface UsersTable {
@@ -9,6 +10,7 @@ export interface UsersTable {
   password_hash: string;
   money: number;
   deposit: number; // 銀行の預金
+  goodness: number; // 善悪（-100〜100）
   soup_kitchen_count: number;
   job_id: string;
   body_power: number;
@@ -41,6 +43,8 @@ export interface LandsTable {
   cell_id: number;
   owner_id: number;
   purchased_price: number;
+  building: BuildingType; // 建物の種類
+  store_kind: StoreKind | null; // 店舗の業種（店舗以外は null）
 }
 
 export type RelationshipType = 'date' | 'propose';
@@ -87,6 +91,7 @@ export async function initDb(): Promise<void> {
     .addColumn('password_hash', 'text', (col) => col.notNull())
     .addColumn('money', 'integer', (col) => col.notNull())
     .addColumn('deposit', 'integer', (col) => col.notNull().defaultTo(0))
+    .addColumn('goodness', 'integer', (col) => col.notNull().defaultTo(0))
     .addColumn('soup_kitchen_count', 'integer', (col) => col.notNull().defaultTo(0))
     .addColumn('job_id', 'text', (col) => col.notNull())
     .addColumn('body_power', 'integer', (col) => col.notNull())
@@ -106,6 +111,12 @@ export async function initDb(): Promise<void> {
     await db.schema
       .alterTable('users')
       .addColumn('deposit', 'integer', (col) => col.notNull().defaultTo(0))
+      .execute();
+  }
+  if (usersTable && !usersTable.columns.some((col) => col.name === 'goodness')) {
+    await db.schema
+      .alterTable('users')
+      .addColumn('goodness', 'integer', (col) => col.notNull().defaultTo(0))
       .execute();
   }
 
@@ -142,7 +153,16 @@ export async function initDb(): Promise<void> {
     .addColumn('cell_id', 'integer', (col) => col.primaryKey())
     .addColumn('owner_id', 'integer', (col) => col.notNull().references('users.id'))
     .addColumn('purchased_price', 'integer', (col) => col.notNull())
+    .addColumn('building', 'text', (col) => col.notNull().defaultTo('house'))
+    .addColumn('store_kind', 'text')
     .execute();
+
+  // 後から追加した列: 既存の土地は一軒家として扱う
+  const landsTable = (await db.introspection.getTables()).find((t) => t.name === 'lands');
+  if (landsTable && !landsTable.columns.some((col) => col.name === 'building')) {
+    await db.schema.alterTable('lands').addColumn('building', 'text', (col) => col.notNull().defaultTo('house')).execute();
+    await db.schema.alterTable('lands').addColumn('store_kind', 'text').execute();
+  }
 
   await db.schema
     .createTable('relationship_requests')

@@ -1,5 +1,5 @@
 import { Hono } from 'hono';
-import type { Abilities } from '../../shared/abilities';
+import type { Abilities, AbilityKey } from '../../shared/abilities';
 import { LIMITS, TRAINING } from '../../shared/config';
 import { describeGain } from '../../shared/master/effects';
 import { findTraining } from '../../shared/master/trainings';
@@ -30,7 +30,7 @@ trainingRoutes.post('/training', requireAuth, async (c) => {
   const isGym = training.facility === 'gym';
   const powerColumn = isGym ? 'body_power' : 'brain_power';
 
-  const message = await runAction(c.get('userId'), ({ user, abilities }) => {
+  const result = await runAction(c.get('userId'), ({ user, abilities }) => {
     if (user[powerColumn] < training.powerCost) {
       throw new GameError(`${isGym ? '身体' : '頭脳'}パワーが足りません。休息しましょう`);
     }
@@ -53,7 +53,8 @@ trainingRoutes.post('/training', requireAuth, async (c) => {
       },
       abilities: addAbilities(abilities, gain),
       message: `${isGym ? 'ジムで' : '学校で'}${training.name}${isGym ? 'をした' : 'を受講した'}（${[describeGain(gain), ...extras].join(' / ')}）`,
+      context: { trainedAbilities: Object.keys(gain) as AbilityKey[] },
     };
-  });
-  return c.json<ActionResult>({ message });
+  }, isGym ? 'gym' : 'school');
+  return c.json<ActionResult>(result);
 });

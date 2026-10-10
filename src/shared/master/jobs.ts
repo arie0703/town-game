@@ -7,6 +7,7 @@ export type JobRequirements = {
   abilities?: Partial<Abilities>;
   bmiRange?: readonly [number, number];
   weightMin?: number; // 体重（kg）の下限
+  goodnessMin?: number; // 善悪の下限（20 = ヨイ以上、60 = 激ヨイ以上）
 };
 
 // 上位職への昇進条件。from の職業に就いていて、その職業レベルが level 以上、総資産が totalAssets 以上であること
@@ -43,9 +44,9 @@ export const JOBS: readonly Job[] = [
   { id: 'store_manager', name: '店長', baseSalary: 3_000, requirements: { bodyTotal: 180, brainTotal: 180 }, promotion: { from: 'part_leader', level: 4, totalAssets: 100_000 }, power: brain(30), conditionCost: 8, fullnessCost: 10, weightChange: -0.3, abilityGain: { social: 2, math: 1 } },
 
   // 教師系
-  { id: 'teacher', name: '教師', baseSalary: 2_500, requirements: { abilities: { japanese: 40, social: 40 } }, power: brain(30), conditionCost: 7, fullnessCost: 10, weightChange: -0.3, abilityGain: { japanese: 1, social: 1 } },
-  { id: 'vice_principal', name: '教頭', baseSalary: 4_000, requirements: { abilities: { japanese: 70, social: 70 } }, promotion: { from: 'teacher', level: 4 }, power: brain(35), conditionCost: 8, fullnessCost: 10, weightChange: -0.2, abilityGain: { japanese: 2, social: 2 } },
-  { id: 'principal', name: '校長', baseSalary: 6_000, requirements: { abilities: { japanese: 100, social: 100 } }, promotion: { from: 'vice_principal', level: 5, totalAssets: 200_000 }, power: brain(40), conditionCost: 9, fullnessCost: 10, weightChange: 0.1, abilityGain: { japanese: 3, social: 3 } },
+  { id: 'teacher', name: '教師', baseSalary: 2_500, requirements: { abilities: { japanese: 40, social: 40 }, goodnessMin: 20 }, power: brain(30), conditionCost: 7, fullnessCost: 10, weightChange: -0.3, abilityGain: { japanese: 1, social: 1 } },
+  { id: 'vice_principal', name: '教頭', baseSalary: 4_000, requirements: { abilities: { japanese: 70, social: 70 }, goodnessMin: 20 }, promotion: { from: 'teacher', level: 4 }, power: brain(35), conditionCost: 8, fullnessCost: 10, weightChange: -0.2, abilityGain: { japanese: 2, social: 2 } },
+  { id: 'principal', name: '校長', baseSalary: 6_000, requirements: { abilities: { japanese: 100, social: 100 }, goodnessMin: 60 }, promotion: { from: 'vice_principal', level: 5, totalAssets: 200_000 }, power: brain(40), conditionCost: 9, fullnessCost: 10, weightChange: 0.1, abilityGain: { japanese: 3, social: 3 } },
 
   // プログラマー系
   { id: 'programmer', name: 'プログラマー', baseSalary: 3_000, requirements: { abilities: { math: 50 } }, power: brain(35), conditionCost: 8, fullnessCost: 12, weightChange: -0.1, abilityGain: { math: 1, science: 1 } },
@@ -77,7 +78,7 @@ export const JOBS: readonly Job[] = [
   { id: 'mma_fighter', name: '総合格闘家', baseSalary: 4_500, requirements: { bodyTotal: 260, abilities: { arm: 60, speed: 50 } }, promotion: { from: 'mma_trainee', level: 3 }, power: body(40), conditionCost: 11, fullnessCost: 16, weightChange: -0.8, abilityGain: { arm: 2, speed: 1, leg: 1 } },
   { id: 'mma_champion', name: 'チャンピオン', baseSalary: 9_500, requirements: { bodyTotal: 340, abilities: { arm: 90, speed: 80 } }, promotion: { from: 'mma_fighter', level: 5, totalAssets: 500_000 }, power: body(48), conditionCost: 12, fullnessCost: 18, weightChange: -0.5, abilityGain: { power: 2, arm: 2, speed: 2, leg: 1 } },
 
-  // カレー屋系（スパイスの研究に理科、本場の知識に語学が必要。試食で満腹度はあまり減らず、太る）
+  // カレー屋系（スパイスの研究に探究心、本場の知識に国際感覚が必要。試食で満腹度はあまり減らず、太る）
   { id: 'curry_shop', name: '町のカレー屋', baseSalary: 2_300, requirements: { abilities: { science: 45, language: 45 } }, power: brain(28), conditionCost: 6, fullnessCost: 5, weightChange: 0.3, abilityGain: { science: 1, language: 1 } },
   { id: 'curry_chef', name: '本格カレー店主', baseSalary: 4_200, requirements: { abilities: { science: 65, language: 65, art: 40 } }, promotion: { from: 'curry_shop', level: 3 }, power: brain(34), conditionCost: 7, fullnessCost: 4, weightChange: 0.3, abilityGain: { science: 2, language: 1, art: 1 } },
   { id: 'curry_master', name: '行列のカレー職人', baseSalary: 8_500, requirements: { abilities: { science: 95, language: 95, art: 60 } }, promotion: { from: 'curry_chef', level: 4, totalAssets: 200_000 }, power: brain(40), conditionCost: 8, fullnessCost: 3, weightChange: 0.4, abilityGain: { science: 2, language: 2, art: 2 } },
@@ -111,3 +112,17 @@ export function jobLevel(exp: number): number {
 export function nextLevelExp(exp: number): number | null {
   return JOB_LEVEL.expThresholds.find((t) => t > exp) ?? null;
 }
+
+// 職業の系統（下位職 → 上位職）
+export const JOB_LINES = {
+  parttime: ['parttime', 'part_leader', 'store_manager'],
+  teacher: ['teacher', 'vice_principal', 'principal'],
+  programmer: ['programmer', 'senior_engineer', 'cto'],
+  trainer: ['fitness_trainer', 'personal_trainer', 'gym_owner'],
+  model: ['model', 'popular_model', 'top_model'],
+  comedian: ['comedian', 'popular_comedian', 'grand_master'],
+  sumo: ['sumo_trainee', 'makushita', 'yokozuna'],
+  mma: ['mma_trainee', 'mma_fighter', 'mma_champion'],
+  curry: ['curry_shop', 'curry_chef', 'curry_master'],
+  bar: ['bar_trainee', 'bartender', 'master_bartender'],
+} as const;

@@ -1,5 +1,6 @@
 import { Hono } from 'hono';
 import { CHOHAN, FIGHT, LIMITS } from '../../shared/config';
+import { GOODNESS, goodnessRank, isGood } from '../../shared/goodness';
 import { yen } from '../../shared/format';
 import type { ActionResult } from '../../shared/types';
 import { requireAuth, type AuthEnv } from '../auth';
@@ -21,7 +22,7 @@ battleRoutes.post('/casino/chohan', requireAuth, async (c) => {
   if (!Number.isInteger(bet) || bet < 1) throw new GameError('賭け金は1円以上の整数で指定してください');
   if (bet > CHOHAN.maxBet) throw new GameError(`賭け金は1回${yen(CHOHAN.maxBet)}までです`);
 
-  const message = await runAction(c.get('userId'), ({ user }) => {
+  const result = await runAction(c.get('userId'), ({ user }) => {
     if (bet > user.money) throw new GameError('持ち金が足りません');
     const dice = [randomIntInclusive(1, 6), randomIntInclusive(1, 6)];
     const result = (dice[0] + dice[1]) % 2 === 0 ? 'cho' : 'han';
@@ -33,7 +34,7 @@ battleRoutes.post('/casino/chohan', requireAuth, async (c) => {
       message: won ? `${head}当たり！${yen(bet * 2)}を受け取った` : `${head}外れ…${yen(bet)}を失った`,
     };
   });
-  return c.json<ActionResult>({ message });
+  return c.json<ActionResult>(result);
 });
 
 // ストリートファイト: 相手はランダム。勝敗の影響を受けるのは挑戦した側のみ
@@ -44,7 +45,7 @@ battleRoutes.post('/fight', requireAuth, async (c) => {
   // 相手のデータは読み取りのみ（書き換えない）
   const opponent = await loadPlayer(db, pickRandom(others).id);
 
-  const message = await runAction(userId, ({ user, abilities }) => {
+  const result = await runAction(userId, ({ user, abilities }) => {
     if (user.body_power < FIGHT.powerCost) throw new GameError('身体パワーが足りません。休息しましょう');
 
     const mine = combatPower(abilities, user.condition);
@@ -55,22 +56,25 @@ battleRoutes.post('/fight', requireAuth, async (c) => {
     const head = `${opponent.user.name}さんにストリートファイトを挑んだ（戦闘力 ${mine} vs ${theirs}、勝率 ${Math.round(rate * 100)}%）。`;
     const base = { body_power: user.body_power - FIGHT.powerCost, fullness: after.fullness };
 
+    // 悪（ワル以下）は賞金が増え、善（ヨイ以上）は負けたときの損失が減る
+    const rank = goodnessRank(user.goodness);
     if (won) {
-      const prize = theirs * FIGHT.prizePerPower;
+      const prize = Math.floor(theirs * FIGHT.prizePerPower * (GOODNESS.fightPrizeRate[rank] ?? 1));
       return {
         user: { ...base, money: user.money + prize, condition: after.condition },
         message: `${head}勝利！賞金${yen(prize)}を手に入れた`,
       };
     }
-    const lost = user.money - Math.floor(user.money / 2);
+    const lossRate = isGood(user.goodness) ? GOODNESS.goodFightLossRate : 0.5;
+    const lost = Math.ceil(user.money * lossRate);
     return {
       user: {
         ...base,
         money: user.money - lost,
         condition: clamp(after.condition - FIGHT.loseConditionDamage, 0, LIMITS.conditionMax),
       },
-      message: `${head}敗北…持ち金が半分になった（-${yen(lost)}）`,
+      message: `${head}敗北…持ち金の${lossRate === 0.5 ? '半分' : '3分の1'}を失った（-${yen(lost)}）`,
     };
-  });
-  return c.json<ActionResult>({ message });
+  }, 'fight');
+  return c.json<ActionResult>(result);
 });

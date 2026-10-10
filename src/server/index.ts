@@ -15,6 +15,7 @@ import { mapRoutes } from './routes/map';
 import { meRoutes } from './routes/me';
 import { realestateRoutes } from './routes/realestate';
 import { residentRoutes } from './routes/residents';
+import { townhallRoutes } from './routes/townhall';
 import { trainingRoutes } from './routes/training';
 
 const app = new Hono().basePath('/api');
@@ -33,6 +34,7 @@ app.route('/', battleRoutes);
 app.route('/', realestateRoutes);
 app.route('/', loveRoutes);
 app.route('/', residentRoutes);
+app.route('/', townhallRoutes);
 app.route('/', bankRoutes);
 
 app.onError((err, c) => {

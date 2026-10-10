@@ -1,5 +1,6 @@
 import { Hono } from 'hono';
 import { LIMITS, REST } from '../../shared/config';
+import { REALESTATE } from '../../shared/master/buildings';
 import { yen } from '../../shared/format';
 import { findJob, jobDepth, jobLevel, jobName, JOBS, nextLevelExp } from '../../shared/master/jobs';
 import type { ActionResult, JobView } from '../../shared/types';
@@ -54,7 +55,7 @@ actionRoutes.post('/jobs/apply', requireAuth, async (c) => {
 
   const userId = c.get('userId');
   const totalAssets = await totalAssetsOf(await loadPlayer(db, userId));
-  const message = await runAction(userId, (player) => {
+  const result = await runAction(userId, (player) => {
     if (player.user.job_id === job.id) throw new GameError(`すでに${job.name}です`);
     const { unmet } = jobRequirements(job, { player, totalAssets });
     if (unmet.length > 0) throw new GameError(`条件を満たしていません（${unmet.join('、')}）`);
@@ -63,20 +64,20 @@ actionRoutes.post('/jobs/apply', requireAuth, async (c) => {
       message: job.promotion ? `${jobName(job.promotion.from)}から${job.name}に昇進した！` : `${job.name}に転職した`,
     };
   });
-  return c.json<ActionResult>({ message });
+  return c.json<ActionResult>(result);
 });
 
 actionRoutes.post('/jobs/quit', requireAuth, async (c) => {
-  const message = await runAction(c.get('userId'), ({ user }) => {
+  const result = await runAction(c.get('userId'), ({ user }) => {
     const job = findJob(user.job_id);
     if (!job || job.id === 'none') throw new GameError('今は無職です');
     return { user: { job_id: 'none' }, message: `${job.name}を退職した` };
   });
-  return c.json<ActionResult>({ message });
+  return c.json<ActionResult>(result);
 });
 
 actionRoutes.post('/work', requireAuth, async (c) => {
-  const message = await runAction(c.get('userId'), ({ user, abilities, jobExp }) => {
+  const result = await runAction(c.get('userId'), ({ user, abilities, jobExp }) => {
     const job = findJob(user.job_id);
     if (!job || job.id === 'none') throw new GameError('無職なので働けません。職業安定所で仕事を探しましょう');
 
@@ -103,31 +104,38 @@ actionRoutes.post('/work', requireAuth, async (c) => {
       abilities: addAbilities(abilities, job.abilityGain),
       jobExp: { [job.id]: exp },
       message: `${yen(pay)}を稼いだ（経験値 +1）${levelUp}`,
+      context: { pay },
     };
-  });
-  return c.json<ActionResult>({ message });
+  }, 'work');
+  return c.json<ActionResult>(result);
 });
 
 actionRoutes.post('/rest', requireAuth, async (c) => {
-  const message = await runAction(c.get('userId'), ({ user, abilities }) => {
-    if (user.fullness <= 0) throw new GameError('お腹が空きすぎて休めません。何か食べましょう');
-
+  const result = await runAction(c.get('userId'), ({ user, abilities, lands }) => {
     const max = maxPowers(abilities);
     const isFull =
       user.body_power >= max.body && user.brain_power >= max.brain && user.condition >= LIMITS.conditionMax;
     if (isFull) throw new GameError('元気いっぱいなので休む必要はありません');
 
     // 休息は基本の回復手段なので、BMI 補正・満腹度ペナルティはかけず常に一定量回復する
-    const condition = Math.min(LIMITS.conditionMax, user.condition + REST.conditionRecovery);
+    // 一軒家を持っていれば、家で休めるので回復量が増える。満腹度 0 ではコンディションの回復が減る
+    const hasHouse = lands.some((l) => l.building === 'house');
+    const rate = hasHouse ? REALESTATE.houseRestRate : 1;
+    const hungry = user.fullness <= 0;
+    const power = Math.floor(REST.powerRecovery * rate);
+    const conditionGain = Math.floor(REST.conditionRecovery * rate * (hungry ? REST.hungryConditionRate : 1));
+    const condition = Math.min(LIMITS.conditionMax, user.condition + conditionGain);
     return {
       user: {
-        body_power: Math.min(max.body, user.body_power + REST.powerRecovery),
-        brain_power: Math.min(max.brain, user.brain_power + REST.powerRecovery),
+        body_power: Math.min(max.body, user.body_power + power),
+        brain_power: Math.min(max.brain, user.brain_power + power),
         fullness: Math.max(0, user.fullness - REST.fullnessCost),
         condition,
       },
-      message: `ひと休みして元気を取り戻した（コンディション +${condition - user.condition}、満腹度 -${Math.min(user.fullness, REST.fullnessCost)}）`,
+      message: hungry
+        ? `${hasHouse ? '家で' : ''}ひと休みしたが、お腹が空いてよく休めなかった（コンディション +${condition - user.condition}）`
+        : `${hasHouse ? '家で' : ''}ひと休みして元気を取り戻した（コンディション +${condition - user.condition}、満腹度 -${Math.min(user.fullness, REST.fullnessCost)}）`,
     };
-  });
-  return c.json<ActionResult>({ message });
+  }, 'rest');
+  return c.json<ActionResult>(result);
 });

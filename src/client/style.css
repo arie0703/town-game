@@ -295,12 +295,31 @@ button.cell {
   margin-top: 12px;
 }
 
+/* 横に並べた枠は上下の余白をそろえる */
+.columns > .box + .box {
+  margin-top: 0;
+}
+
 /* フラッシュメッセージ */
 .flash {
   border: 1px solid var(--border);
   padding: 6px 10px;
   margin: 0 0 12px;
   background: #fffbe0;
+}
+
+.flash-event {
+  display: block;
+  margin-top: 4px;
+  font-weight: bold;
+}
+
+.flash-event-good {
+  color: #1e6b34;
+}
+
+.flash-event-bad {
+  color: #b00020;
 }
 
 .flash-error {
@@ -320,6 +339,11 @@ button.cell {
 
 .muted {
   color: #888;
+}
+
+.text-error {
+  color: #b00020;
+  font-weight: bold;
 }
 
 h3 {
@@ -512,6 +536,12 @@ select {
   border-color: #cfcfcf;
 }
 
+.chip-goodness {
+  color: #5b2a86;
+  background: #efe4fa;
+  border-color: #c9a8ea;
+}
+
 .facility-blackmarket .chip-plus {
   color: #86efac;
   background: #14301f;
@@ -528,4 +558,10 @@ select {
   color: #d4c4e6;
   background: #2f2445;
   border-color: #5b4a78;
+}
+
+.facility-blackmarket .chip-goodness {
+  color: #e9d5ff;
+  background: #3b1f5c;
+  border-color: #7c4dab;
 }

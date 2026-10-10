@@ -1,4 +1,5 @@
 import { ABILITIES, type Abilities } from '../abilities';
+import { LIMITS } from '../config';
 import { formatKg } from '../weight';
 
 // アイテム・食堂メニュー共通の効果。必要なものだけ指定する
@@ -10,6 +11,7 @@ export type ConsumableEffect = {
   condition?: number;
   weight?: number;
   height?: number;
+  goodness?: number; // 善悪の増減
   gain: Partial<Abilities>;
 };
 
@@ -25,11 +27,11 @@ export function describeGain(gain: Partial<Abilities>): string {
     .join(' / ');
 }
 
-// 効果の1項目。group: 表示する行（回復 / 体 / 能力）、tone: 色分け（良い / 悪い / どちらでもない）
+// 効果の1項目。group: 表示する行（回復 / 体 / 能力）、tone: 色分け（良い / 悪い / どちらでもない / 善悪）
 export type EffectPart = {
   group: 'recover' | 'body' | 'ability';
   text: string;
-  tone: 'plus' | 'minus' | 'neutral';
+  tone: 'plus' | 'minus' | 'neutral' | 'goodness';
 };
 
 const toneOf = (value: number): EffectPart['tone'] => (value > 0 ? 'plus' : 'minus');
@@ -37,7 +39,10 @@ const toneOf = (value: number): EffectPart['tone'] => (value > 0 ? 'plus' : 'min
 // 効果を項目のリストにする（マスタの値から生成する）。体重・身長は増減の良し悪しが人によるので neutral
 export function effectParts(e: ConsumableEffect): EffectPart[] {
   const parts: EffectPart[] = [];
-  if (e.fullness) parts.push({ group: 'recover', text: `満腹度 +${e.fullness}`, tone: 'plus' });
+  // 食堂のように満腹度が上限まで回復するものは、どれも同じなので表示しない
+  if (e.fullness && e.fullness < LIMITS.fullnessMax) {
+    parts.push({ group: 'recover', text: `満腹度 ${signed(e.fullness)}`, tone: toneOf(e.fullness) });
+  }
   if (e.bodyPower && e.bodyPower === e.brainPower) {
     parts.push({ group: 'recover', text: `身体パワー・頭脳パワー ${signed(e.bodyPower)}`, tone: toneOf(e.bodyPower) });
   } else {
@@ -49,6 +54,8 @@ export function effectParts(e: ConsumableEffect): EffectPart[] {
     parts.push({ group: 'body', text: `体重 ${e.weight > 0 ? '+' : '-'}${formatKg(Math.abs(e.weight))}`, tone: 'neutral' });
   }
   if (e.height) parts.push({ group: 'body', text: `身長 ${signed(e.height)}cm`, tone: 'neutral' });
+  // 善悪は善に寄せたいか悪に寄せたいかが人によるので、良し悪しではなく専用の色（紫）で表す
+  if (e.goodness) parts.push({ group: 'body', text: `善悪 ${signed(e.goodness)}`, tone: 'goodness' });
   for (const a of ABILITIES) {
     const value = e.gain[a.key];
     if (value) parts.push({ group: 'ability', text: `${a.label} ${signed(value)}`, tone: toneOf(value) });

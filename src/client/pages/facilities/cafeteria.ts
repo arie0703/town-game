@@ -1,3 +1,4 @@
+import { LIMITS } from '../../../shared/config';
 import { CHEAPEST_MENU_PRICE, menusOf } from '../../../shared/master/menus';
 import { SOUP_REFUSAL_LINE } from '../../../shared/master/npcs';
 import type { Me } from '../../../shared/types';
@@ -37,11 +38,14 @@ function soupKitchenHtml(me: Me): string {
 }
 
 export async function renderCafeteria(container: HTMLElement, me: Me, rerender: () => Promise<void>): Promise<void> {
+  const full = me.fullness >= LIMITS.fullnessMax;
   container.innerHTML = `
-    <p>持ち金: ${yen(me.money)}　満腹度: ${me.fullness} / 100</p>
+    <p>持ち金: ${yen(me.money)}　満腹度: ${me.fullness} / ${LIMITS.fullnessMax}</p>
+    ${full ? '<p class="text-error">満腹で注文できません</p>' : ''}
     ${menuTableHtml(menusOf('cafeteria'), 'メニュー')}
     ${soupKitchenHtml(me)}
   `;
-  bindMenuButtons(container, rerender);
+  bindMenuButtons(container, rerender, '#/home');
+  if (full) container.querySelectorAll<HTMLButtonElement>('[data-menu]').forEach((b) => (b.disabled = true));
   container.querySelector('#soup')?.addEventListener('click', () => postAction('/cafeteria/soup', {}, rerender));
 }
