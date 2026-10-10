@@ -1,5 +1,6 @@
 import type { Abilities, AbilityKey } from '../abilities';
 import { yen } from '../format';
+import { isBad, isGood } from '../goodness';
 import { JOB_LINES } from './jobs';
 import { describeEffect } from './effects';
 
@@ -26,14 +27,16 @@ export type EventContext = {
 // イベント抽選時の状態（行動の結果を反映した後）
 export type EventState = {
   money: number;
+  goodness: number;
   jobId: string;
   items: Record<string, number>;
 };
 
 // イベントの効果。必要なものだけ指定する
-//   money: お金の増減、items: アイテムの個数の増減、jobExp: 今の職業の経験値の増減。ほかは ConsumableEffect と同じ
+//   money: お金の増減、goodness: 善悪の増減、items: アイテムの個数の増減、jobExp: 今の職業の経験値の増減。ほかは ConsumableEffect と同じ
 export type EventEffect = {
   money?: number;
+  goodness?: number;
   fullness?: number;
   bodyPower?: number;
   brainPower?: number;
@@ -141,6 +144,24 @@ export const RANDOM_EVENTS: readonly RandomEvent[] = [
   { id: 'cat', text: '野良猫になつかれた', actions: 'all', weight: 20, tone: 'good', effect: { condition: 10 } },
   { id: 'cold', text: '風邪をひいた', actions: 'all', weight: 10, tone: 'bad', effect: { condition: -20, bodyPower: -20 } },
   { id: 'lottery', text: '宝くじが当たった', actions: 'all', weight: 1, tone: 'good', effect: { money: 30_000 } },
+
+  // 善悪（共通）
+  { id: 'lost_child', text: '迷子を交番に届けた', actions: 'all', weight: 10, tone: 'good', effect: { goodness: 5 } },
+  { id: 'caught_peeing', text: '立ちションして注意された', actions: 'all', weight: 10, tone: 'bad', effect: { goodness: -5 } },
+  // 善（ヨイ以上）のみ
+  { id: 'commended', text: '善行が表彰された', actions: 'all', weight: 10, tone: 'good', when: (s) => isGood(s.goodness), effect: { money: 5_000 } },
+  { id: 'neighbor_gift', text: '近所の人から差し入れをもらった', actions: 'all', weight: 15, tone: 'good', when: (s) => isGood(s.goodness), effect: { fullness: 20 } },
+  // 悪（ワル以下）のみ
+  {
+    id: 'police_question',
+    text: '警察に職務質問され罰金を払った',
+    actions: 'all',
+    weight: 15,
+    tone: 'bad',
+    when: (s) => isBad(s.goodness) && s.money >= 3_000,
+    effect: { money: -3_000 },
+  },
+  { id: 'thug', text: 'チンピラに絡まれた', actions: 'all', weight: 10, tone: 'bad', when: (s) => isBad(s.goodness), effect: { condition: -15 } },
 
   // 仕事
   {
@@ -261,6 +282,7 @@ export function describeEventEffect(effect: EventEffect): string {
   const parts = [
     effect.money ? `${effect.money > 0 ? '+' : '-'}${yen(Math.abs(effect.money))}` : '',
     describeEffect({ ...effect, gain: effect.gain ?? {} }),
+    effect.goodness ? `善悪 ${effect.goodness > 0 ? '+' : ''}${effect.goodness}` : '',
     effect.jobExp ? `経験値 +${effect.jobExp}` : '',
   ];
   return parts.filter(Boolean).join(' / ');

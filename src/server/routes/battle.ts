@@ -1,5 +1,6 @@
 import { Hono } from 'hono';
 import { CHOHAN, FIGHT, LIMITS } from '../../shared/config';
+import { GOODNESS, goodnessRank, isGood } from '../../shared/goodness';
 import { yen } from '../../shared/format';
 import type { ActionResult } from '../../shared/types';
 import { requireAuth, type AuthEnv } from '../auth';
@@ -55,21 +56,24 @@ battleRoutes.post('/fight', requireAuth, async (c) => {
     const head = `${opponent.user.name}さんにストリートファイトを挑んだ（戦闘力 ${mine} vs ${theirs}、勝率 ${Math.round(rate * 100)}%）。`;
     const base = { body_power: user.body_power - FIGHT.powerCost, fullness: after.fullness };
 
+    // 悪（ワル以下）は賞金が増え、善（ヨイ以上）は負けたときの損失が減る
+    const rank = goodnessRank(user.goodness);
     if (won) {
-      const prize = theirs * FIGHT.prizePerPower;
+      const prize = Math.floor(theirs * FIGHT.prizePerPower * (GOODNESS.fightPrizeRate[rank] ?? 1));
       return {
         user: { ...base, money: user.money + prize, condition: after.condition },
         message: `${head}勝利！賞金${yen(prize)}を手に入れた`,
       };
     }
-    const lost = user.money - Math.floor(user.money / 2);
+    const lossRate = isGood(user.goodness) ? GOODNESS.goodFightLossRate : 0.5;
+    const lost = Math.ceil(user.money * lossRate);
     return {
       user: {
         ...base,
         money: user.money - lost,
         condition: clamp(after.condition - FIGHT.loseConditionDamage, 0, LIMITS.conditionMax),
       },
-      message: `${head}敗北…持ち金が半分になった（-${yen(lost)}）`,
+      message: `${head}敗北…持ち金の${lossRate === 0.5 ? '半分' : '3分の1'}を失った（-${yen(lost)}）`,
     };
   }, 'fight');
   return c.json<ActionResult>(result);

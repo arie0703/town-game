@@ -17,6 +17,7 @@ function statusTable(me: Me): string {
     ['持ち金', yen(me.money)],
     ['預金', yen(me.deposit)],
     ['総資産', yen(me.totalAssets)],
+    ['善悪', `${me.goodness.rank}（${me.goodness.value}）`],
     ['職業', me.job.id === 'none' ? escapeHtml(me.job.name) : `${escapeHtml(me.job.name)}（Lv${me.job.level}）`],
     ['身体パワー', gauge(me.bodyPower.current, me.bodyPower.max)],
     ['頭脳パワー', gauge(me.brainPower.current, me.brainPower.max)],

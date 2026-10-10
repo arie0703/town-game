@@ -7,6 +7,7 @@ export type JobRequirements = {
   abilities?: Partial<Abilities>;
   bmiRange?: readonly [number, number];
   weightMin?: number; // 体重（kg）の下限
+  goodnessMin?: number; // 善悪の下限（20 = ヨイ以上、60 = 激ヨイ以上）
 };
 
 // 上位職への昇進条件。from の職業に就いていて、その職業レベルが level 以上、総資産が totalAssets 以上であること
@@ -43,9 +44,9 @@ export const JOBS: readonly Job[] = [
   { id: 'store_manager', name: '店長', baseSalary: 3_000, requirements: { bodyTotal: 180, brainTotal: 180 }, promotion: { from: 'part_leader', level: 4, totalAssets: 100_000 }, power: brain(30), conditionCost: 8, fullnessCost: 10, weightChange: -0.3, abilityGain: { social: 2, math: 1 } },
 
   // 教師系
-  { id: 'teacher', name: '教師', baseSalary: 2_500, requirements: { abilities: { japanese: 40, social: 40 } }, power: brain(30), conditionCost: 7, fullnessCost: 10, weightChange: -0.3, abilityGain: { japanese: 1, social: 1 } },
-  { id: 'vice_principal', name: '教頭', baseSalary: 4_000, requirements: { abilities: { japanese: 70, social: 70 } }, promotion: { from: 'teacher', level: 4 }, power: brain(35), conditionCost: 8, fullnessCost: 10, weightChange: -0.2, abilityGain: { japanese: 2, social: 2 } },
-  { id: 'principal', name: '校長', baseSalary: 6_000, requirements: { abilities: { japanese: 100, social: 100 } }, promotion: { from: 'vice_principal', level: 5, totalAssets: 200_000 }, power: brain(40), conditionCost: 9, fullnessCost: 10, weightChange: 0.1, abilityGain: { japanese: 3, social: 3 } },
+  { id: 'teacher', name: '教師', baseSalary: 2_500, requirements: { abilities: { japanese: 40, social: 40 }, goodnessMin: 20 }, power: brain(30), conditionCost: 7, fullnessCost: 10, weightChange: -0.3, abilityGain: { japanese: 1, social: 1 } },
+  { id: 'vice_principal', name: '教頭', baseSalary: 4_000, requirements: { abilities: { japanese: 70, social: 70 }, goodnessMin: 20 }, promotion: { from: 'teacher', level: 4 }, power: brain(35), conditionCost: 8, fullnessCost: 10, weightChange: -0.2, abilityGain: { japanese: 2, social: 2 } },
+  { id: 'principal', name: '校長', baseSalary: 6_000, requirements: { abilities: { japanese: 100, social: 100 }, goodnessMin: 60 }, promotion: { from: 'vice_principal', level: 5, totalAssets: 200_000 }, power: brain(40), conditionCost: 9, fullnessCost: 10, weightChange: 0.1, abilityGain: { japanese: 3, social: 3 } },
 
   // プログラマー系
   { id: 'programmer', name: 'プログラマー', baseSalary: 3_000, requirements: { abilities: { math: 50 } }, power: brain(35), conditionCost: 8, fullnessCost: 12, weightChange: -0.1, abilityGain: { math: 1, science: 1 } },

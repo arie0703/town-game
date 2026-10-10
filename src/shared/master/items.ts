@@ -26,6 +26,9 @@ export const ITEMS: readonly Item[] = [
   { id: 'fashion_mag', name: 'ファッション誌', price: 1_500, shop: 'shop', effect: { type: 'ability', gain: { looks: 4 } } },
   { id: 'comedy_dvd', name: 'お笑いDVD', price: 1_500, shop: 'shop', effect: { type: 'ability', brainPower: 20, gain: { humor: 5 } } },
   { id: 'love_song', name: 'ラブソングCD', price: 1_500, shop: 'shop', effect: { type: 'ability', condition: 10, gain: { love: 5 } } },
+  // 善悪を調整するグミ
+  { id: 'cocktail_gummy', name: 'カクテルグミ', price: 3_000, shop: 'shop', effect: { type: 'ability', goodness: -15, condition: 5, weight: 0.2, gain: { love: 3, looks: 2 } } },
+  { id: 'fruit_gummy', name: 'フルーツグミ', price: 3_000, shop: 'shop', effect: { type: 'ability', goodness: 15, condition: 5, weight: 0.2, gain: { health: 3, music: 2 } } },
   // 回復
   { id: 'energy_drink', name: '栄養ドリンク', price: 400, shop: 'shop', effect: { type: 'recovery', bodyPower: 50, brainPower: 50, gain: { stamina: 1 } } },
   { id: 'bath_salt', name: '入浴剤', price: 600, shop: 'shop', effect: { type: 'recovery', condition: 30, gain: { looks: 1, health: 1 } } },

@@ -1,5 +1,6 @@
 import type { Abilities } from '../../shared/abilities';
 import { LIMITS } from '../../shared/config';
+import { clampGoodness } from '../../shared/goodness';
 import type { ConsumableEffect } from '../../shared/master/effects';
 import type { Player, PlayerChange } from './player';
 import { addAbilities } from './player';
@@ -22,6 +23,7 @@ export function applyEffect(
       condition: clamp(user.condition + condition, 0, LIMITS.conditionMax),
       weight_g: addWeight(user.weight_g, effect.weight ?? 0),
       height: addHeight(user.height, effect.height ?? 0),
+      goodness: clampGoodness(user.goodness + (effect.goodness ?? 0)),
     },
     abilities: gained,
   };

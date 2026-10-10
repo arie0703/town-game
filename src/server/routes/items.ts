@@ -1,6 +1,7 @@
 import { Hono } from 'hono';
 import { LIMITS, SOUP_KITCHEN } from '../../shared/config';
 import { yen } from '../../shared/format';
+import { isBad } from '../../shared/goodness';
 import { describeItem, findItem } from '../../shared/master/items';
 import { describeMenu, findMenu } from '../../shared/master/menus';
 import type { ActionResult, InventoryItem } from '../../shared/types';
@@ -41,12 +42,15 @@ itemRoutes.post('/shop/buy', requireAuth, async (c) => {
   }
 
   const result = await runAction(c.get('userId'), ({ user, items }) => {
+    const blackmarket = item.shop === 'blackmarket';
+    // 闇市場はワル以下しか入れない（条件はメッセージに出さない）
+    if (blackmarket && !isBad(user.goodness)) throw new GameError('闇の商人に相手にされなかった');
     const total = item.price * quantity;
     if (user.money < total) throw new GameError('お金が足りません');
     return {
       user: { money: user.money - total },
       items: { [item.id]: (items[item.id] ?? 0) + quantity },
-      message: `${item.shop === 'blackmarket' ? '闇市場' : 'お店'}で${item.name}を${quantity}個買った（${yen(total)}）`,
+      message: `${blackmarket ? '闇市場' : 'お店'}で${item.name}を${quantity}個買った（${yen(total)}）`,
       context: { boughtItemId: item.id, boughtQuantity: quantity },
     };
   }, item.shop === 'blackmarket' ? 'blackmarket' : undefined);

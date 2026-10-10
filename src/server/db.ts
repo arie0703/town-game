@@ -10,6 +10,7 @@ export interface UsersTable {
   password_hash: string;
   money: number;
   deposit: number; // 銀行の預金
+  goodness: number; // 善悪（-100〜100）
   soup_kitchen_count: number;
   job_id: string;
   body_power: number;
@@ -90,6 +91,7 @@ export async function initDb(): Promise<void> {
     .addColumn('password_hash', 'text', (col) => col.notNull())
     .addColumn('money', 'integer', (col) => col.notNull())
     .addColumn('deposit', 'integer', (col) => col.notNull().defaultTo(0))
+    .addColumn('goodness', 'integer', (col) => col.notNull().defaultTo(0))
     .addColumn('soup_kitchen_count', 'integer', (col) => col.notNull().defaultTo(0))
     .addColumn('job_id', 'text', (col) => col.notNull())
     .addColumn('body_power', 'integer', (col) => col.notNull())
@@ -109,6 +111,12 @@ export async function initDb(): Promise<void> {
     await db.schema
       .alterTable('users')
       .addColumn('deposit', 'integer', (col) => col.notNull().defaultTo(0))
+      .execute();
+  }
+  if (usersTable && !usersTable.columns.some((col) => col.name === 'goodness')) {
+    await db.schema
+      .alterTable('users')
+      .addColumn('goodness', 'integer', (col) => col.notNull().defaultTo(0))
       .execute();
   }
 

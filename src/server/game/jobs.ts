@@ -2,6 +2,7 @@ import type { Abilities } from '../../shared/abilities';
 import { ABILITIES } from '../../shared/abilities';
 import { WORK } from '../../shared/config';
 import { yen } from '../../shared/format';
+import { goodnessRank } from '../../shared/goodness';
 import { formatKg } from '../../shared/weight';
 import { findJob, jobLevel, type Job } from '../../shared/master/jobs';
 import type { Player } from './player';
@@ -41,6 +42,9 @@ function requirementChecks(job: Job, { player, totalAssets }: JobContext): Array
   }
   if (r.weightMin !== undefined) {
     checks.push({ label: `体重 ${formatKg(r.weightMin)}以上`, met: user.weight_g >= r.weightMin * 1000 });
+  }
+  if (r.goodnessMin !== undefined) {
+    checks.push({ label: `善悪 ${goodnessRank(r.goodnessMin)}以上`, met: user.goodness >= r.goodnessMin });
   }
   if (r.bmiRange) {
     const [min, max] = r.bmiRange;

@@ -1,21 +1,23 @@
 import type { AbilityKey } from '../../shared/abilities';
+import { GOODNESS, isBad, isGood } from '../../shared/goodness';
 import { buildingName, MANSION, REALESTATE, STORES, type IncomeOutcome } from '../../shared/master/buildings';
 import { MAP_CELLS } from '../../shared/master/map';
 import { describeEventEffect, type EventEffect } from '../../shared/master/random-events';
 import type { ActionEvent } from '../../shared/types';
 import type { Player, PlayerChange } from './player';
-import { chance, randomIntInclusive } from './random';
+import { chance, randomFloat } from './random';
 import { applyEventEffect, mergeChange } from './random-events';
 import { clamp } from './status';
 
 type Land = Player['lands'][number];
 
+// 重みで1つ選ぶ（重みは小数でもよい）
 function pickWeighted(outcomes: readonly IncomeOutcome[], weightOf: (o: IncomeOutcome) => number): IncomeOutcome {
   const weights = outcomes.map((o) => Math.max(0, weightOf(o)));
-  let r = randomIntInclusive(1, weights.reduce((sum, w) => sum + w, 0));
+  let r = randomFloat() * weights.reduce((sum, w) => sum + w, 0);
   for (let i = 0; i < outcomes.length; i++) {
     r -= weights[i];
-    if (r <= 0) return outcomes[i];
+    if (r < 0) return outcomes[i];
   }
   return outcomes[0];
 }
@@ -34,10 +36,13 @@ function drawIncome(player: Player, land: Land): { outcome: IncomeOutcome; incom
 
   if (land.building === 'mansion') {
     if (!chance(MANSION.chance)) return null;
-    // 表現力 10 ごとに満室の重み +1、教養 10 ごとに滞納の重み -1
+    // 表現力 10 ごとに満室の重み +1、教養 10 ごとに滞納の重み -1。善（ヨイ以上）は住人に信用され、滞納がさらに減る
     const outcome = pickWeighted(MANSION.outcomes, (o) => {
       if (o.id === 'full_occupancy') return o.weight + Math.floor(player.abilities[MANSION.fullOccupancyAbility] / 10);
-      if (o.id === 'arrears') return Math.max(2, o.weight - Math.floor(player.abilities[MANSION.arrearsAbility] / 10));
+      if (o.id === 'arrears') {
+        const weight = Math.max(2, o.weight - Math.floor(player.abilities[MANSION.arrearsAbility] / 10));
+        return isGood(player.user.goodness) ? weight * GOODNESS.goodArrearsWeightRate : weight;
+      }
       return o.weight;
     });
     return { outcome, income: Math.floor(cell.landPrice * MANSION.incomeRate) };
@@ -48,7 +53,9 @@ function drawIncome(player: Player, land: Land): { outcome: IncomeOutcome; incom
     if (!chance(store.chance)) return null;
     const jobRate = store.jobs.includes(player.user.job_id) ? REALESTATE.jobLineRate : 1;
     const income = Math.floor(cell.landPrice * store.incomeRate * abilityRate(player, store.abilities) * jobRate);
-    return { outcome: pickWeighted(store.outcomes, (o) => o.weight), income };
+    // 悪（ワル以下）の店舗は裏の顔が利くので、強盗が来にくい
+    const robberyRate = isBad(player.user.goodness) ? GOODNESS.badRobberyWeightRate : 1;
+    return { outcome: pickWeighted(store.outcomes, (o) => (o.robbery ? o.weight * robberyRate : o.weight)), income };
   }
   return null;
 }

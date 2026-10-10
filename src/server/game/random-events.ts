@@ -1,5 +1,6 @@
 import type { Abilities } from '../../shared/abilities';
 import { LIMITS, RANDOM_EVENT } from '../../shared/config';
+import { clampGoodness } from '../../shared/goodness';
 import {
   describeEventEffect,
   RANDOM_EVENTS,
@@ -62,6 +63,7 @@ export function applyEventEffect(
   const brainPower = clamp(user.brain_power + (effect.brainPower ?? 0), 0, max.brain);
   const condition = clamp(user.condition + (effect.condition ?? 0), 0, LIMITS.conditionMax);
   const weightG = addWeight(user.weight_g, effect.weight ?? 0);
+  const goodness = clampGoodness(user.goodness + (effect.goodness ?? 0));
 
   const nextItems: Record<string, number> = {};
   const appliedItems: Record<string, number> = {};
@@ -90,6 +92,7 @@ export function applyEventEffect(
         brain_power: brainPower,
         condition,
         weight_g: weightG,
+        goodness,
       },
       abilities: { ...change.abilities, ...gained },
       items: { ...change.items, ...nextItems },
@@ -102,6 +105,7 @@ export function applyEventEffect(
       brainPower: brainPower - user.brain_power,
       condition: condition - user.condition,
       weight: (weightG - user.weight_g) / 1000,
+      goodness: goodness - user.goodness,
       gain: appliedGain,
       jobExp: nextJobExp[user.job_id] !== undefined ? effect.jobExp : 0,
     },
@@ -116,10 +120,10 @@ export function rollRandomEvent(
 ): { change: PlayerChange; events: ActionEvent[] } {
   const merged = mergeChange(player, change);
   const ctx = change.context ?? {};
-  const event = drawEvent(kind, { money: merged.user.money, jobId: merged.user.job_id, items: merged.items }, ctx);
+  const event = drawEvent(kind, { money: merged.user.money, goodness: merged.user.goodness, jobId: merged.user.job_id, items: merged.items }, ctx);
   if (!event) return { change, events: [] };
 
-  const effect = typeof event.effect === 'function' ? event.effect({ money: merged.user.money, jobId: merged.user.job_id, items: merged.items }, ctx) : event.effect;
+  const effect = typeof event.effect === 'function' ? event.effect({ money: merged.user.money, goodness: merged.user.goodness, jobId: merged.user.job_id, items: merged.items }, ctx) : event.effect;
   const result = applyEventEffect(player, change, effect);
   const detail = describeEventEffect(result.applied);
   const text = detail ? `${event.text}（${detail}）` : event.text;

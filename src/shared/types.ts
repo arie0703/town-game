@@ -1,4 +1,5 @@
 import type { Abilities } from './abilities';
+import type { GoodnessRank } from './goodness';
 import type { BuildingType, StoreKind } from './master/buildings';
 import type { MapCell } from './master/map';
 
@@ -13,6 +14,7 @@ export type Me = {
   money: number;
   deposit: number;
   totalAssets: number;
+  goodness: { value: number; rank: GoodnessRank }; // 善悪（-100〜100）とランク
   job: { id: string; name: string; level: number }; // level: 今の職業の職業レベル
   bodyPower: Gauge;
   brainPower: Gauge;
@@ -90,6 +92,7 @@ export type ResidentView = {
   name: string;
   jobName: string;
   totalAssets: number;
+  goodnessRank: GoodnessRank;
   lover: UserRef | null;
   spouse: UserRef | null;
 };

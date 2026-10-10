@@ -1,3 +1,4 @@
+import { isBad } from '../../../shared/goodness';
 import { ITEM_TYPE_LABEL, itemsOf, type Item } from '../../../shared/master/items';
 import { abilityEffectHtml, conditionEffectHtml } from '../../components/effect';
 import type { InventoryItem, Me } from '../../../shared/types';
@@ -49,6 +50,11 @@ export async function renderShop(container: HTMLElement, me: Me, rerender: () =>
   await renderItemShop(container, me, rerender, 'shop');
 }
 
+// 闇市場はワル以下しか入れない（条件は画面に出さず、遊んで気づかせる）
 export async function renderBlackmarket(container: HTMLElement, me: Me, rerender: () => Promise<void>): Promise<void> {
+  if (!isBad(me.goodness.value)) {
+    container.innerHTML = '<p>闇の商人はこちらを一瞥し、黙って背を向けた。</p>';
+    return;
+  }
   await renderItemShop(container, me, rerender, 'blackmarket');
 }
