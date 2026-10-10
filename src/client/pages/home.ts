@@ -6,7 +6,7 @@ import { bindMapHint, mapHtml } from '../components/map';
 import { dateTime, gauge, yen } from '../format';
 import { formatKg } from '../../shared/weight';
 import { escapeHtml } from '../html';
-import { postAction, renderLayout } from '../layout';
+import { postAction, postActionRepeat, renderLayout } from '../layout';
 
 function userName(user: UserRef | null): string {
   return user ? escapeHtml(user.name) : 'なし';
@@ -76,6 +76,7 @@ export async function renderHome(root: HTMLElement): Promise<void> {
           <div class="actions">
             <button type="button" id="work"${me.job.id === 'none' ? ' disabled title="職業安定所で仕事を探しましょう"' : ''}>仕事</button>
             <button type="button" id="rest">休息</button>
+            <button type="button" id="rest-full" title="元気いっぱいになるまで休息をくり返す">しっかり休む</button>
             <a class="button" href="#/items">アイテム</a>
             <a class="button" href="#/fight">ストリートファイト</a>
             <a class="button" href="#/love">恋愛</a>
@@ -102,4 +103,7 @@ export async function renderHome(root: HTMLElement): Promise<void> {
   const rerender = () => renderHome(root);
   main.querySelector('#work')!.addEventListener('click', () => postAction('/work', {}, rerender));
   main.querySelector('#rest')!.addEventListener('click', () => postAction('/rest', {}, rerender));
+  main.querySelector('#rest-full')!.addEventListener('click', () =>
+    postActionRepeat('/rest', {}, rerender, { label: '休息' }),
+  );
 }

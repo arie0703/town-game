@@ -20,13 +20,51 @@ function flashHtml({ message, kind, events = [] }: Flash): string {
 }
 
 // アクション API を呼び、結果をフラッシュに積んでから画面を描き直す
-export async function postAction(path: string, body: unknown, rerender: () => Promise<void>): Promise<void> {
+//   redirect: 成功したら描き直す代わりにその画面へ移る（例: '#/home'）。失敗したときは今の画面のまま
+export async function postAction(
+  path: string,
+  body: unknown,
+  rerender: () => Promise<void>,
+  { redirect }: { redirect?: string } = {},
+): Promise<void> {
   try {
     const result = await api.post<ActionResult>(path, body);
     setFlash(result.message, 'info', result.events);
+    if (redirect) {
+      location.hash = redirect;
+      return;
+    }
   } catch (e) {
     setFlash(e instanceof ApiError ? e.message : '通信エラーが発生しました', 'error');
   }
+  await rerender();
+}
+
+// 同じアクションを、断られるまで（満腹・元気いっぱい・お金不足など）最大 max 回くり返す
+//   1回目で断られたらそのエラーを出す。2回目以降で止まったら、それまでの結果をまとめて出す
+export async function postActionRepeat(
+  path: string,
+  body: unknown,
+  rerender: () => Promise<void>,
+  { label, max = 30 }: { label: string; max?: number },
+): Promise<void> {
+  const events: ActionEvent[] = [];
+  let count = 0;
+  let last = '';
+  try {
+    for (; count < max; count++) {
+      const result = await api.post<ActionResult>(path, body);
+      last = result.message;
+      events.push(...(result.events ?? []));
+    }
+  } catch (e) {
+    if (count === 0) {
+      setFlash(e instanceof ApiError ? e.message : '通信エラーが発生しました', 'error');
+      await rerender();
+      return;
+    }
+  }
+  setFlash(`${label}を${count}回くり返した（最後: ${last}）`, 'info', events);
   await rerender();
 }
 

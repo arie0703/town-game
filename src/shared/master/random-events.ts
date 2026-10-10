@@ -282,7 +282,6 @@ export function describeEventEffect(effect: EventEffect): string {
   const parts = [
     effect.money ? `${effect.money > 0 ? '+' : '-'}${yen(Math.abs(effect.money))}` : '',
     describeEffect({ ...effect, gain: effect.gain ?? {} }),
-    effect.goodness ? `善悪 ${effect.goodness > 0 ? '+' : ''}${effect.goodness}` : '',
     effect.jobExp ? `経験値 +${effect.jobExp}` : '',
   ];
   return parts.filter(Boolean).join(' / ');

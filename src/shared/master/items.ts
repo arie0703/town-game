@@ -34,23 +34,23 @@ export const ITEMS: readonly Item[] = [
   { id: 'bath_salt', name: '入浴剤', price: 600, shop: 'shop', effect: { type: 'recovery', condition: 30, gain: { looks: 1, health: 1 } } },
   { id: 'elixir', name: '高級ドリンク', price: 1_500, shop: 'shop', effect: { type: 'recovery', bodyPower: 100, brainPower: 100, condition: 30, gain: { stamina: 2, health: 2 } } },
   // 闇市場: 体重・身長を大きく変える薬
-  { id: 'fat_burner', name: '脂肪燃焼カプセル', price: 8_000, shop: 'blackmarket', effect: { type: 'special', weight: -10, condition: -20, gain: { speed: 2 } } },
-  { id: 'forbidden_diet', name: '禁断の痩せ薬', price: 20_000, shop: 'blackmarket', effect: { type: 'special', weight: -20, condition: -40, gain: { speed: 3, health: -5 } } },
+  { id: 'fat_burner', name: '脂肪燃焼カプセル', price: 8_000, shop: 'blackmarket', effect: { type: 'special', weight: -10, condition: -10, gain: { speed: 2 } } },
+  { id: 'forbidden_diet', name: '禁断の痩せ薬', price: 20_000, shop: 'blackmarket', effect: { type: 'special', weight: -20, condition: -20, gain: { speed: 3, health: -5 } } },
   { id: 'fat_syrup', name: '激太りシロップ', price: 3_000, shop: 'blackmarket', effect: { type: 'special', weight: 10, gain: { stamina: 1 } } },
-  { id: 'grow_milk', name: '伸長ミルク', price: 30_000, shop: 'blackmarket', effect: { type: 'special', height: 3, condition: -10, gain: { leg: 2 } } },
-  { id: 'giant_elixir', name: '巨人の秘薬', price: 120_000, shop: 'blackmarket', effect: { type: 'special', height: 10, condition: -30, gain: { power: 5 } } },
+  { id: 'grow_milk', name: '伸長ミルク', price: 30_000, shop: 'blackmarket', effect: { type: 'special', height: 3, condition: -5, gain: { leg: 2 } } },
+  { id: 'giant_elixir', name: '巨人の秘薬', price: 120_000, shop: 'blackmarket', effect: { type: 'special', height: 10, condition: -15, gain: { power: 5 } } },
   { id: 'shrink_pill', name: '縮み薬', price: 10_000, shop: 'blackmarket', effect: { type: 'special', height: -5, gain: { speed: 3 } } },
   // 闇市場: 能力が大きく上がる高価な品
-  { id: 'titan_elixir', name: '怪力の秘薬', price: 100_000, shop: 'blackmarket', effect: { type: 'ability', condition: -20, gain: { power: 30, arm: 30 } } },
-  { id: 'genius_jam', name: '天才のジャム', price: 80_000, shop: 'blackmarket', effect: { type: 'ability', condition: -10, gain: { math: 30, science: 20 } } },
+  { id: 'titan_elixir', name: '怪力の秘薬', price: 100_000, shop: 'blackmarket', effect: { type: 'ability', condition: -10, gain: { power: 30, arm: 30 } } },
+  { id: 'genius_jam', name: '天才のジャム', price: 80_000, shop: 'blackmarket', effect: { type: 'ability', condition: -5, gain: { math: 30, science: 20 } } },
   { id: 'charm_perfume', name: '魅惑の香水', price: 60_000, shop: 'blackmarket', effect: { type: 'ability', gain: { looks: 20, love: 20 } } },
   { id: 'laugh_charm', name: '笑いの神のお守り', price: 50_000, shop: 'blackmarket', effect: { type: 'ability', gain: { humor: 30 } } },
   // 闇市場: 怪しい食べ物
   // ブリザデイロ: 濃厚な激甘スイーツ（違法な物質入り）。コンディションは下がるが、LOVE と体重が大きく増える
-  { id: 'brigadeiro', name: 'ブリザデイロ', price: 2_500, shop: 'blackmarket', effect: { type: 'food', fullness: 20, weight: 5.0, condition: -20, gain: { love: 10 } } },
-  { id: 'magic_shake', name: 'マジックプロテインシェイク', price: 15_000, shop: 'blackmarket', effect: { type: 'food', fullness: 15, weight: 1.0, bodyPower: 80, condition: -10, gain: { power: 8, arm: 5 } } },
+  { id: 'brigadeiro', name: 'ブリザデイロ', price: 2_500, shop: 'blackmarket', effect: { type: 'food', fullness: 20, weight: 5.0, condition: -10, gain: { love: 10 } } },
+  { id: 'magic_shake', name: 'マジックプロテインシェイク', price: 15_000, shop: 'blackmarket', effect: { type: 'food', fullness: 15, weight: 1.0, bodyPower: 80, condition: -5, gain: { power: 8, arm: 5 } } },
   { id: 'hemp_icecream', name: 'ヘンプアイスクリーム', price: 3_000, shop: 'blackmarket', effect: { type: 'food', fullness: 15, weight: 0.8, condition: 30, brainPower: -20, gain: { humor: 5 } } },
-  { id: 'mystery_ramen', name: '謎肉ラーメン', price: 1_800, shop: 'blackmarket', effect: { type: 'food', fullness: 60, weight: 2.5, bodyPower: 40, condition: -10, gain: { stamina: 3 } } },
+  { id: 'mystery_ramen', name: '謎肉ラーメン', price: 1_800, shop: 'blackmarket', effect: { type: 'food', fullness: 60, weight: 2.5, bodyPower: 40, condition: -5, gain: { stamina: 3 } } },
 ];
 
 // 並び順: 種類（ITEM_TYPE_LABEL の定義順）→ マスタの定義順

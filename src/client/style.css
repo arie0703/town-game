@@ -341,6 +341,11 @@ button.cell {
   color: #888;
 }
 
+.text-error {
+  color: #b00020;
+  font-weight: bold;
+}
+
 h3 {
   font-size: 14px;
   margin: 0 0 6px;

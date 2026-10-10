@@ -1,4 +1,5 @@
 import { ABILITIES, type Abilities } from '../abilities';
+import { LIMITS } from '../config';
 import { formatKg } from '../weight';
 
 // アイテム・食堂メニュー共通の効果。必要なものだけ指定する
@@ -38,7 +39,10 @@ const toneOf = (value: number): EffectPart['tone'] => (value > 0 ? 'plus' : 'min
 // 効果を項目のリストにする（マスタの値から生成する）。体重・身長は増減の良し悪しが人によるので neutral
 export function effectParts(e: ConsumableEffect): EffectPart[] {
   const parts: EffectPart[] = [];
-  if (e.fullness) parts.push({ group: 'recover', text: `満腹度 ${signed(e.fullness)}`, tone: toneOf(e.fullness) });
+  // 食堂のように満腹度が上限まで回復するものは、どれも同じなので表示しない
+  if (e.fullness && e.fullness < LIMITS.fullnessMax) {
+    parts.push({ group: 'recover', text: `満腹度 ${signed(e.fullness)}`, tone: toneOf(e.fullness) });
+  }
   if (e.bodyPower && e.bodyPower === e.brainPower) {
     parts.push({ group: 'recover', text: `身体パワー・頭脳パワー ${signed(e.bodyPower)}`, tone: toneOf(e.bodyPower) });
   } else {

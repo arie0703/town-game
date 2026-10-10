@@ -44,6 +44,8 @@ export const REST = {
   powerRecovery: 50, // 身体パワー・頭脳パワーそれぞれの回復量
   conditionRecovery: 30, // BMI 補正前の値
   fullnessCost: 5,
+  // 満腹度 0 でも休めるが、コンディションの回復量はこの倍率になる（パワーは通常どおり）
+  hungryConditionRate: 0.5,
 } as const;
 
 export const TRAINING = {
