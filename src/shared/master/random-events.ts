@@ -15,7 +15,8 @@ export type ActionKind =
   | 'izakaya'
   | 'blackmarket'
   | 'fight'
-  | 'shinogi';
+  | 'shinogi'
+  | 'travel';
 
 // 行動の結果のうち、イベントの条件・効果に使う値（行動ごとに必要なものだけ入る）
 export type EventContext = {
@@ -23,6 +24,7 @@ export type EventContext = {
   boughtItemId?: string; // 闇市場: 買ったアイテム
   boughtQuantity?: number;
   trainedAbilities?: AbilityKey[]; // 学校: その授業で上がった能力
+  travelCost?: number; // 旅行: 旅行の費用
 };
 
 // イベント抽選時の状態（行動の結果を反映した後）
@@ -263,6 +265,33 @@ export const RANDOM_EVENTS: readonly RandomEvent[] = [
     tone: 'good',
     when: (_, ctx) => ctx.boughtItemId !== undefined,
     effect: (_, ctx) => ({ items: { [ctx.boughtItemId!]: 1 } }),
+  },
+
+  // 旅行
+  {
+    id: 'lost_passport',
+    text: 'パスポートをなくして再発行した',
+    actions: ['travel'],
+    weight: 15,
+    tone: 'bad',
+    effect: (_, ctx) => ({ money: -Math.floor((ctx.travelCost ?? 0) * 0.2) }),
+  },
+  {
+    id: 'pickpocket',
+    text: '旅先でスリに遭った',
+    actions: ['travel'],
+    weight: 15,
+    tone: 'bad',
+    when: (s) => s.money >= 10_000,
+    effect: (s) => ({ money: -Math.floor(s.money * 0.3) }),
+  },
+  {
+    id: 'casino_jackpot',
+    text: '旅先のカジノで大当たり',
+    actions: ['travel'],
+    weight: 10,
+    tone: 'good',
+    effect: (_, ctx) => ({ money: Math.floor((ctx.travelCost ?? 0) * 0.5) }),
   },
 
   // ストリートファイト

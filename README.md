@@ -76,6 +76,7 @@ src/
 - `src/shared/goodness.ts`: 善悪のランクの区切りと、寄付・闇市場・ストリートファイト・不動産への効果
 - `src/shared/master/gang.ts`: 裏組織の所属条件・シノギ・昇進条件・足抜け料
 - `src/shared/master/states.ts`: 状態の定義と、状態ごとに制限する行動
+- `src/shared/master/travels.ts`: 旅行先の費用・身体パワー・効果・お土産の確率
 - `src/shared/master/random-events.ts`: ランダムイベントの内容・重み・発生条件（発生確率は `config.ts` の `RANDOM_EVENT`）
 
 ## マップのアイコン

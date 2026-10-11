@@ -1,5 +1,5 @@
 import { findFacility, type FacilityId } from '../../shared/master/facilities';
-import { FACILITY_NPC } from '../../shared/master/npcs';
+import { FACILITY_NPC, HIDEOUT_OUTSIDER_LINE } from '../../shared/master/npcs';
 import { stateNpcLine } from '../../shared/master/states';
 import { npcHtml } from '../components/npc';
 import type { Me } from '../../shared/types';
@@ -14,6 +14,7 @@ import { renderJobCenter } from './facilities/job';
 import { renderRealestate } from './facilities/realestate';
 import { renderBlackmarket, renderShop } from './facilities/shop';
 import { renderTownhall } from './facilities/townhall';
+import { renderTravel } from './facilities/travel';
 import { renderGym, renderSchool } from './facilities/training';
 import { renderNotFound } from './not-found';
 
@@ -32,8 +33,15 @@ const BODIES: Record<FacilityId, FacilityBody> = {
   bank: renderBank,
   blackmarket: renderBlackmarket,
   hideout: renderHideout,
+  travel: renderTravel,
   townhall: renderTownhall,
 };
+
+// 状態などで決まる店主のセリフ（undefined ならランダム）
+function npcLine(facility: FacilityId, me: Me): string | undefined {
+  if (facility === 'hideout') return me.states.some((s) => s.id === 'gang') ? '' : HIDEOUT_OUTSIDER_LINE;
+  return stateNpcLine(me.states, facility);
+}
 
 export async function renderFacility(root: HTMLElement, params: Record<string, string>): Promise<void> {
   const facility = findFacility(params.id);
@@ -49,7 +57,7 @@ export async function renderFacility(root: HTMLElement, params: Record<string, s
     <section class="box facility facility-${facility.id}">
       <h2>${facility.name}</h2>
       <p>${facility.description}</p>
-      ${npcHtml(FACILITY_NPC[facility.id], stateNpcLine(me.states, facility.id))}
+      ${npcHtml(FACILITY_NPC[facility.id], npcLine(facility.id, me))}
       <div id="facility-body"></div>
       <p><a href="#/home">← 町に戻る</a></p>
     </section>

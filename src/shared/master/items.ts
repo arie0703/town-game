@@ -4,15 +4,28 @@ import { describeEffect } from './effects';
 // type はお店での分類の目安。効果はどの種類にも付けられるが、満腹度（fullness）は食事のみ
 export type ItemEffect =
   | ({ type: 'food'; fullness: number } & ConsumableEffect)
-  | ({ type: 'ability' | 'recovery' | 'special'; fullness?: never } & ConsumableEffect);
+  | ({ type: 'ability' | 'recovery' | 'special' | 'souvenir'; fullness?: never } & ConsumableEffect);
 
-// shop: 販売している店（お店 / 闇市場）
-export type Item = { id: string; name: string; price: number; shop: 'shop' | 'blackmarket'; effect: ItemEffect };
+// shop: 販売している店（お店 / 闇市場）。travel は旅行のお土産で、どこでも売っていない
+export type Item = { id: string; name: string; price: number; shop: 'shop' | 'blackmarket' | 'travel'; effect: ItemEffect };
 
-export const ITEM_TYPE_LABEL = { food: '食事', ability: '能力アップ', recovery: '回復', special: '薬' } as const;
+export const ITEM_TYPE_LABEL = { food: '食事', ability: '能力アップ', recovery: '回復', special: '薬', souvenir: 'お土産' } as const;
 
 // アイテムマスタ
 export const ITEMS: readonly Item[] = [
+  // 旅行のお土産（旅行代理店の旅行で低確率で手に入る。所持アイテム画面からは使えない。効果は今後決める）
+  { id: 'golden_manju', name: '黄金温泉まんじゅう', price: 0, shop: 'travel', effect: { type: 'souvenir', gain: {} } },
+  { id: 'seiryu_blade', name: '戦国時代の青龍刀', price: 0, shop: 'travel', effect: { type: 'souvenir', gain: {} } },
+  { id: 'silver_pistol', name: '白銀の拳銃', price: 0, shop: 'travel', effect: { type: 'souvenir', gain: {} } },
+  { id: 'blood_olive_oil', name: 'ブラッド・オリーブオイル', price: 0, shop: 'travel', effect: { type: 'souvenir', gain: {} } },
+  { id: 'yanomami_pendant', name: 'ヤノマミのペンダント', price: 0, shop: 'travel', effect: { type: 'souvenir', gain: {} } },
+  { id: 'prophecy_book', name: '謎の予言書', price: 0, shop: 'travel', effect: { type: 'souvenir', gain: {} } },
+  // 旅行のお土産（通常）: 旅行で確率で手に入り、所持アイテムとしていつでも使える。お店では売っていない
+  { id: 'onsen_powder', name: '湯の花の素', price: 0, shop: 'travel', effect: { type: 'recovery', condition: 40, gain: { health: 1 } } },
+  { id: 'kampo_medicine', name: '秘伝の漢方薬', price: 0, shop: 'travel', effect: { type: 'recovery', bodyPower: 100, brainPower: 100, gain: { health: 2 } } },
+  { id: 'prosciutto', name: '生ハムの塊', price: 0, shop: 'travel', effect: { type: 'food', fullness: 60, bodyPower: 40, weight: 1.0, gain: { power: 2 } } },
+  { id: 'guarana_extract', name: 'ガラナエキス', price: 0, shop: 'travel', effect: { type: 'recovery', bodyPower: 150, condition: 20, gain: { speed: 2 } } },
+  { id: 'ancient_papyrus', name: '古代のパピルス', price: 0, shop: 'travel', effect: { type: 'ability', gain: { social: 8, science: 5, language: 3 } } },
   // 食事
   { id: 'bread', name: 'パン', price: 300, shop: 'shop', effect: { type: 'food', fullness: 20, weight: 0.8, bodyPower: 10, condition: 5, gain: { stamina: 1 } } },
   { id: 'spicy_noodle', name: '激辛カップ麺', price: 150, shop: 'shop', effect: { type: 'food', fullness: 30, weight: 0.7, condition: -10, gain: { humor: 1 } } },

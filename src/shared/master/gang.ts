@@ -27,7 +27,7 @@ export type GangRank = { name: string; shinogiBase: number; promotion?: GangProm
 // 階級（配列の添字 = 状態の level）。promotion はその階級に上がるための条件
 export const GANG_RANKS: readonly GangRank[] = [
   { name: '組員', shinogiBase: 3_000 },
-  { name: '幹部', shinogiBase: 6_000, promotion: { tribute: 5_000_000, abilities: { arm: 60, power: 60 } } },
+  { name: '幹部', shinogiBase: 6_000, promotion: { tribute: 5_000_000, abilities: { arm: 60, power: 60 }, itemId: 'silver_pistol' } },
   { name: '組長', shinogiBase: 10_000, promotion: { tribute: 20_000_000, abilities: { arm: 100, power: 100, social: 60 } } },
 ];
 

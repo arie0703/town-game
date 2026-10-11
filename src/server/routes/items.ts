@@ -35,7 +35,8 @@ itemRoutes.get('/items', requireAuth, async (c) => {
 itemRoutes.post('/shop/buy', requireAuth, async (c) => {
   const body = await readBody(c.req.raw);
   const item = typeof body.itemId === 'string' ? findItem(body.itemId) : undefined;
-  if (!item) throw new GameError('そのアイテムは売っていません');
+  // お土産（shop: travel）はどこでも売っていない
+  if (!item || item.shop === 'travel') throw new GameError('そのアイテムは売っていません');
   const quantity = Number(body.quantity ?? 1);
   if (!Number.isInteger(quantity) || quantity < 1 || quantity > MAX_PURCHASE_QUANTITY) {
     throw new GameError(`個数は1〜${MAX_PURCHASE_QUANTITY}で指定してください`);
@@ -66,6 +67,7 @@ itemRoutes.post('/items/use', requireAuth, async (c) => {
   const result = await runAction(c.get('userId'), (player) => {
     const owned = player.items[item.id] ?? 0;
     if (owned <= 0) throw new GameError(`${item.name}を持っていません`);
+    if (item.effect.type === 'souvenir') throw new GameError('ここでは使えないようだ');
     if (item.effect.type === 'food') assertNotFull(player.user.fullness);
     const { user, abilities } = applyEffect(player, item.effect);
     const verb = item.effect.type === 'food' ? '食べた' : '使った';

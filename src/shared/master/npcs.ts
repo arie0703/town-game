@@ -44,7 +44,12 @@ export const NPCS = {
   },
   npc_hideout: {
     name: '組長代理',
-    lines: ['……何の用だ', '堅気が来る場所じゃねえぞ', 'シノギは足で稼ぐもんだ', '上納金、忘れんなよ'],
+    // 普段は何も言わない。組の人間でない者が来たときだけ HIDEOUT_OUTSIDER_LINE を言う
+    lines: [],
+  },
+  npc_travel: {
+    name: '旅行代理店のスタッフ',
+    lines: ['いらっしゃいませ！どちらへお出かけですか？', '旅先では思わぬ出会いがあるかもしれませんよ', '珍しいお土産、見つかるといいですね', 'パスポートのお忘れなく！'],
   },
   npc_izakaya: {
     name: '居酒屋の大将',
@@ -69,9 +74,13 @@ export const FACILITY_NPC: Record<FacilityId, NpcId> = {
   bank: 'npc_bank',
   blackmarket: 'npc_blackmarket',
   hideout: 'npc_hideout',
+  travel: 'npc_travel',
   izakaya: 'npc_izakaya',
   townhall: 'npc_townhall',
 };
+
+// 裏組織に属していない住民がアジトに来たときの、組長代理のセリフ
+export const HIDEOUT_OUTSIDER_LINE = 'なんの用だ';
 
 // 小銭が残っていて炊き出しを使えないときの、炊き出しおじさんのセリフ
 export const SOUP_REFUSAL_LINE = 'お前さん、まだ小銭を持ってるだろ？一文無しになったらおいで';

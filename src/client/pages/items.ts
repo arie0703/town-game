@@ -25,7 +25,7 @@ export async function renderItems(root: HTMLElement): Promise<void> {
           <td>${conditionEffectHtml(item.effect)}</td>
           <td>${abilityEffectHtml(item.effect)}</td>
           <td>${quantity}</td>
-          <td><button type="button" data-use="${item.id}">使う</button></td>
+          <td>${item.effect.type === 'souvenir' ? '' : `<button type="button" data-use="${item.id}">使う</button>`}</td>
         </tr>
       `;
     })
