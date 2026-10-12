@@ -27,7 +27,7 @@ export function menuTableHtml(menus: Menu[], caption: string): string {
   `;
 }
 
-// redirect: 注文に成功したら移る画面（食堂は1回で満腹になるので、町の地図へ戻す）
+// redirect: 注文に成功したら移る画面（食堂は1回で体力が大きく回復するので、町の地図へ戻す）
 export function bindMenuButtons(container: HTMLElement, rerender: () => Promise<void>, redirect?: string): void {
   container.querySelectorAll<HTMLButtonElement>('[data-menu]').forEach((button) => {
     button.addEventListener('click', () => postAction('/eat', { menuId: button.dataset.menu }, rerender, { redirect }));

@@ -5,6 +5,7 @@ import type { ActionResult } from '../../shared/types';
 import { requireAuth, type AuthEnv } from '../auth';
 import { GameError } from '../game/errors';
 import { assertAllowed, runAction } from '../game/player';
+import { assertStamina, spendCondition } from '../game/status';
 
 export const townhallRoutes = new Hono<AuthEnv>();
 
@@ -29,19 +30,19 @@ townhallRoutes.post('/townhall/donate', requireAuth, async (c) => {
   return c.json<ActionResult>(result);
 });
 
-// ボランティア（身体パワー・満腹度を使って善悪 +3）
+// ボランティア（身体パワー・体力を使って善悪 +3）
 townhallRoutes.post('/townhall/volunteer', requireAuth, async (c) => {
   const result = await runAction(c.get('userId'), (player) => {
     assertAllowed(player, 'volunteer');
     const { user } = player;
     if (user.goodness >= GOODNESS.max) throw new GameError('これ以上の善行は積めないほど、あなたは善人です');
     if (user.body_power < GOODNESS.volunteerPowerCost) throw new GameError('身体パワーが足りません。休息しましょう');
-    if (user.fullness <= 0) throw new GameError('お腹が空きすぎて動けません。何か食べましょう');
+    assertStamina(user.condition, 'ボランティアに参加できません');
     const goodness = clampGoodness(user.goodness + GOODNESS.volunteerGain);
     return {
       user: {
         body_power: user.body_power - GOODNESS.volunteerPowerCost,
-        fullness: Math.max(0, user.fullness - GOODNESS.volunteerFullnessCost),
+        condition: spendCondition(user.condition, GOODNESS.volunteerConditionCost),
         goodness,
       },
       message: `町のゴミ拾いのボランティアをした（善悪 +${goodness - user.goodness}）`,

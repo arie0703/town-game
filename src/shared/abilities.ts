@@ -16,7 +16,7 @@ export const ABILITIES = [
   { key: 'music', label: '感性', category: 'brain' },
   { key: 'art', label: '創造性', category: 'brain' },
   { key: 'looks', label: 'ルックス', category: 'body' },
-  { key: 'stamina', label: '体力', category: 'body' },
+  { key: 'stamina', label: '持久力', category: 'body' },
   { key: 'health', label: '健康', category: 'body' },
   { key: 'speed', label: 'スピード', category: 'body' },
   { key: 'power', label: 'パワー', category: 'body' },

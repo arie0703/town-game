@@ -7,7 +7,7 @@ function chipsHtml(parts: EffectPart[]): string {
 // 効果がない列は「−」を表示する
 const EMPTY = '<span class="muted">−</span>';
 
-// 体調の列: 満腹度・パワー（回復）の行と、コンディション・体重・身長（体）の行に分けて表示する
+// 体調の列: パワー（回復）の行と、体力・体重・身長（体）の行に分けて表示する
 export function conditionEffectHtml(effect: ConsumableEffect): string {
   const parts = effectParts(effect);
   const rows = (['recover', 'body'] as const)

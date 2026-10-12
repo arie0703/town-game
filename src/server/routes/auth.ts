@@ -64,7 +64,7 @@ authRoutes.post('/register', async (c) => {
         condition: INITIAL.condition,
         height: randomInt(INITIAL.heightRange),
         weight_g: randomInt([INITIAL.weightRange[0] * 10, INITIAL.weightRange[1] * 10]) * 100,
-        fullness: INITIAL.fullness,
+        fullness: -1, // 使わなくなった列（体力に統合済み）。既存の DB の NOT NULL 制約のため値を入れる
         created_at: new Date().toISOString(),
       })
       .returning('id')

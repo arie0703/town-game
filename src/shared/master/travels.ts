@@ -69,6 +69,11 @@ export const TRAVELS: readonly Travel[] = [
   },
 ];
 
+// 体力が下がる過酷な旅行先（体力が 0 だと行けない）
+export function isHardTravel(travel: Travel): boolean {
+  return (travel.effect.condition ?? 0) < 0;
+}
+
 export function findTravel(id: string): Travel | undefined {
   return TRAVELS.find((t) => t.id === id);
 }

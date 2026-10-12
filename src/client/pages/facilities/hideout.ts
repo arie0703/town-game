@@ -1,4 +1,5 @@
 import { GANG, GANG_RANKS, gangPromotionChecks } from '../../../shared/master/gang';
+import { noStaminaAttr } from '../../../shared/stamina';
 import type { InventoryItem, Me } from '../../../shared/types';
 import { api } from '../../api';
 import { yen } from '../../format';
@@ -35,8 +36,8 @@ export async function renderHideout(container: HTMLElement, me: Me, rerender: ()
     <div class="columns">
       <div class="box">
         <h3>シノギ</h3>
-        <p class="note">身体パワー ${s.powerCost}・満腹度 ${s.fullnessCost} を使って稼ぐ。危ない橋もある。</p>
-        <button type="button" id="shinogi">シノギに出る</button>
+        <p class="note">身体パワー ${s.powerCost}・体力 ${s.conditionCost} を使って稼ぐ。危ない橋もある。</p>
+        <button type="button" id="shinogi"${noStaminaAttr(me.condition)}>シノギに出る</button>
       </div>
       <div class="box">
         <h3>昇進</h3>

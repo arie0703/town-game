@@ -24,7 +24,6 @@ export type Me = {
   height: number;
   weight: number; // kg（0.1kg 単位）
   bmi: number;
-  fullness: number;
   abilities: Abilities;
   brainTotal: number;
   bodyTotal: number;

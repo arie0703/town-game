@@ -9,7 +9,7 @@ export const GOODNESS = {
   donationUnit: 1_000, // 寄付 1,000円ごとに +1
   volunteerGain: 3,
   volunteerPowerCost: 20,
-  volunteerFullnessCost: 5,
+  volunteerConditionCost: 3, // 体力の消費
   // ストリートファイト: 悪は賞金が増え、善（ヨイ以上）は負けたときの損失が減る
   fightPrizeRate: { ワル: 1.3, 激ワル: 1.5 } as Partial<Record<GoodnessRank, number>>,
   goodFightLossRate: 1 / 3,

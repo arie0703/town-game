@@ -1,5 +1,4 @@
 import { Hono } from 'hono';
-import { LIMITS } from '../../shared/config';
 import { yen } from '../../shared/format';
 import { clampGoodness } from '../../shared/goodness';
 import { GANG, GANG_RANKS, gangPromotionChecks } from '../../shared/master/gang';
@@ -8,7 +7,7 @@ import { requireAuth, type AuthEnv } from '../auth';
 import { GameError } from '../game/errors';
 import { runAction, stateOf, type Player } from '../game/player';
 import { chance, randomFloat } from '../game/random';
-import { afterAction, clamp } from '../game/status';
+import { assertStamina, spendCondition } from '../game/status';
 
 export const hideoutRoutes = new Hono<AuthEnv>();
 
@@ -55,7 +54,7 @@ hideoutRoutes.post('/hideout/promote', requireAuth, async (c) => {
   return c.json<ActionResult>(result);
 });
 
-// シノギ: 身体パワー・満腹度を使って稼ぐ。抗争・摘発のリスクがある
+// シノギ: 身体パワー・体力を使って稼ぐ。抗争・摘発のリスクがある
 hideoutRoutes.post('/hideout/shinogi', requireAuth, async (c) => {
   const result = await runAction(
     c.get('userId'),
@@ -64,14 +63,15 @@ hideoutRoutes.post('/hideout/shinogi', requireAuth, async (c) => {
       const { user } = player;
       const s = GANG.shinogi;
       if (user.body_power < s.powerCost) throw new GameError('身体パワーが足りません。休息しましょう');
+      assertStamina(user.condition, 'シノギに出られません');
 
-      const after = afterAction(user, s.fullnessCost);
-      const base = { body_power: user.body_power - s.powerCost, fullness: after.fullness };
+      const condition = spendCondition(user.condition, s.conditionCost);
+      const base = { body_power: user.body_power - s.powerCost };
       // 警察の摘発: 罰金を払い、組を抜けさせられる
       if (chance(s.raid.chance)) {
         const fine = Math.floor(user.money * s.raid.fineRate);
         return {
-          user: { ...base, condition: after.condition, money: user.money - fine },
+          user: { ...base, condition, money: user.money - fine },
           states: { remove: ['gang'] },
           message: `シノギの最中に警察の摘発を受けた。罰金${yen(fine)}を払い、組を抜けることになった`,
         };
@@ -83,10 +83,10 @@ hideoutRoutes.post('/hideout/shinogi', requireAuth, async (c) => {
         user: {
           ...base,
           money: user.money + pay,
-          condition: clamp(after.condition + (feud ? s.feud.condition : 0), 0, LIMITS.conditionMax),
+          condition: spendCondition(condition, feud ? -s.feud.condition : 0),
           goodness: clampGoodness(user.goodness + s.goodness),
         },
-        message: `シノギで${yen(pay)}を稼いだ（善悪 ${s.goodness}）${feud ? `。抗争に巻き込まれた（コンディション ${s.feud.condition}）` : ''}`,
+        message: `シノギで${yen(pay)}を稼いだ（善悪 ${s.goodness}）${feud ? `。抗争に巻き込まれた（体力 ${s.feud.condition}）` : ''}`,
       };
     },
     'shinogi',

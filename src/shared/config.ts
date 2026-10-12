@@ -6,15 +6,13 @@ export const INITIAL = {
   heightRange: [150, 200], // cm
   weightRange: [45, 90], // kg（0.1kg 単位のランダム）
   jobId: 'none',
-  condition: 100,
-  fullness: 50,
+  condition: 100, // 体力
 } as const;
 
 export const LIMITS = {
   // 能力値の上限（null = 上限なし）
   abilityMax: null as number | null,
-  conditionMax: 100,
-  fullnessMax: 100,
+  conditionMax: 100, // 体力の上限
 } as const;
 
 export const ACCOUNT = {
@@ -26,30 +24,25 @@ export const ACCOUNT = {
 } as const;
 
 export const STATUS = {
-  // BMI の標準範囲。外れるとコンディションの回復量が減る
+  // BMI の標準範囲。外れると体力の回復量が減る（アイテム・食事。休息には適用しない）
   bmiNormalRange: [18.5, 25],
   bmiOutOfRangeRecoveryRate: 0.5,
-  // 満腹度がこの値未満で行動すると、コンディションが下がる
-  lowFullnessThreshold: 20,
-  lowFullnessConditionPenalty: 5,
 } as const;
 
 export const WORK = {
-  // コンディションがこの値未満だと給料が減る
+  // 体力がこの値未満だと給料が減る
   lowConditionThreshold: 50,
   lowConditionSalaryRate: 0.5,
 } as const;
 
 export const REST = {
   powerRecovery: 50, // 身体パワー・頭脳パワーそれぞれの回復量
-  conditionRecovery: 30, // BMI 補正前の値
-  fullnessCost: 5,
-  // 満腹度 0 でも休めるが、コンディションの回復量はこの倍率になる（パワーは通常どおり）
-  hungryConditionRate: 0.5,
+  // 体力の回復量。休息は「無料だがゆっくり」、食事は「お金がかかるが速い」
+  conditionRecovery: 20,
 } as const;
 
 export const TRAINING = {
-  // コンディションに応じた能力上昇の倍率（上から順に判定）。種目ごとの上昇量はマスタ（trainings.ts）で定義
+  // 体力に応じた能力上昇の倍率（上から順に判定）。種目ごとの上昇量はマスタ（trainings.ts）で定義
   rateByCondition: [
     { minCondition: 80, rate: 1 },
     { minCondition: 50, rate: 0.6 },
@@ -65,7 +58,7 @@ export const BODY = {
 } as const;
 
 export const SOUP_KITCHEN = {
-  fullnessRecovery: 30,
+  conditionRecovery: 30, // 体力の回復量
 } as const;
 
 export const CHOHAN = {
@@ -74,8 +67,8 @@ export const CHOHAN = {
 
 export const FIGHT = {
   powerCost: 30,
-  fullnessCost: 15,
-  // 戦闘力 = (身体合計 + 下記能力の合計) × コンディション補正
+  conditionCost: 8, // 体力の消費
+  // 戦闘力 = (身体合計 + 下記能力の合計) × 体力補正
   extraWeightAbilities: ['power', 'speed', 'arm', 'leg'],
   winRateRange: [0.05, 0.95],
   prizePerPower: 10,

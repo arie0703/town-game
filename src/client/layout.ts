@@ -40,7 +40,7 @@ export async function postAction(
   await rerender();
 }
 
-// 同じアクションを、断られるまで（満腹・元気いっぱい・お金不足など）最大 max 回くり返す
+// 同じアクションを、断られるまで（元気いっぱい・お金不足など）最大 max 回くり返す
 //   1回目で断られたらそのエラーを出す。2回目以降で止まったら、それまでの結果をまとめて出す
 export async function postActionRepeat(
   path: string,

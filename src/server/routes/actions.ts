@@ -10,7 +10,7 @@ import { landValueOf } from '../game/assets';
 import { GameError } from '../game/errors';
 import { jobRequirements, salary } from '../game/jobs';
 import { addAbilities, loadPlayer, runAction, type Player } from '../game/player';
-import { addWeight, afterAction, clamp, maxPowers } from '../game/status';
+import { addWeight, assertStamina, maxPowers, spendCondition } from '../game/status';
 
 const POWER_LABEL = { body: '身体パワー', brain: '頭脳パワー' } as const;
 
@@ -32,7 +32,7 @@ actionRoutes.get('/jobs', requireAuth, async (c) => {
       id: job.id,
       name: job.name,
       baseSalary: job.baseSalary,
-      powerLabel: `${POWER_LABEL[job.power.type]} ${job.power.cost} / 満腹度 ${job.fullnessCost}`,
+      powerLabel: `${POWER_LABEL[job.power.type]} ${job.power.cost} / 体力 ${job.conditionCost}`,
       weightChange: job.weightChange,
       depth: jobDepth(job),
       promotionFrom: job.promotion ? jobName(job.promotion.from) : null,
@@ -80,6 +80,7 @@ actionRoutes.post('/work', requireAuth, async (c) => {
   const result = await runAction(c.get('userId'), ({ user, abilities, jobExp }) => {
     const job = findJob(user.job_id);
     if (!job || job.id === 'none') throw new GameError('無職なので働けません。職業安定所で仕事を探しましょう');
+    assertStamina(user.condition, '働けません');
 
     const powerColumn = job.power.type === 'body' ? 'body_power' : 'brain_power';
     if (user[powerColumn] < job.power.cost) {
@@ -87,7 +88,6 @@ actionRoutes.post('/work', requireAuth, async (c) => {
     }
 
     const pay = salary(job, user.condition);
-    const after = afterAction(user, job.fullnessCost);
     const weightG = addWeight(user.weight_g, job.weightChange);
     // 職業ごとの経験値 +1。レベルが上がったら知らせる
     const exp = (jobExp[job.id] ?? 0) + 1;
@@ -97,8 +97,7 @@ actionRoutes.post('/work', requireAuth, async (c) => {
       user: {
         money: user.money + pay,
         [powerColumn]: user[powerColumn] - job.power.cost,
-        fullness: after.fullness,
-        condition: clamp(after.condition - job.conditionCost, 0, LIMITS.conditionMax),
+        condition: spendCondition(user.condition, job.conditionCost),
         weight_g: weightG,
       },
       abilities: addAbilities(abilities, job.abilityGain),
@@ -111,31 +110,30 @@ actionRoutes.post('/work', requireAuth, async (c) => {
 });
 
 actionRoutes.post('/rest', requireAuth, async (c) => {
-  const result = await runAction(c.get('userId'), ({ user, abilities, lands }) => {
-    const max = maxPowers(abilities);
-    const isFull =
-      user.body_power >= max.body && user.brain_power >= max.brain && user.condition >= LIMITS.conditionMax;
-    if (isFull) throw new GameError('元気いっぱいなので休む必要はありません');
+  const result = await runAction(
+    c.get('userId'),
+    ({ user, abilities, lands }) => {
+      const max = maxPowers(abilities);
+      const isFull =
+        user.body_power >= max.body && user.brain_power >= max.brain && user.condition >= LIMITS.conditionMax;
+      if (isFull) throw new GameError('元気いっぱいなので休む必要はありません');
 
-    // 休息は基本の回復手段なので、BMI 補正・満腹度ペナルティはかけず常に一定量回復する
-    // 一軒家を持っていれば、家で休めるので回復量が増える。満腹度 0 ではコンディションの回復が減る
-    const hasHouse = lands.some((l) => l.building === 'house');
-    const rate = hasHouse ? REALESTATE.houseRestRate : 1;
-    const hungry = user.fullness <= 0;
-    const power = Math.floor(REST.powerRecovery * rate);
-    const conditionGain = Math.floor(REST.conditionRecovery * rate * (hungry ? REST.hungryConditionRate : 1));
-    const condition = Math.min(LIMITS.conditionMax, user.condition + conditionGain);
-    return {
-      user: {
-        body_power: Math.min(max.body, user.body_power + power),
-        brain_power: Math.min(max.brain, user.brain_power + power),
-        fullness: Math.max(0, user.fullness - REST.fullnessCost),
-        condition,
-      },
-      message: hungry
-        ? `${hasHouse ? '家で' : ''}ひと休みしたが、お腹が空いてよく休めなかった（コンディション +${condition - user.condition}）`
-        : `${hasHouse ? '家で' : ''}ひと休みして元気を取り戻した（コンディション +${condition - user.condition}、満腹度 -${Math.min(user.fullness, REST.fullnessCost)}）`,
-    };
-  }, 'rest');
+      // 休息は無料の基本の回復手段（パワーが主、体力は少し）。BMI 補正はかけず常に一定量回復する
+      // 一軒家を持っていれば、家で休めるので回復量が増える
+      const hasHouse = lands.some((l) => l.building === 'house');
+      const rate = hasHouse ? REALESTATE.houseRestRate : 1;
+      const power = Math.floor(REST.powerRecovery * rate);
+      const condition = Math.min(LIMITS.conditionMax, user.condition + Math.floor(REST.conditionRecovery * rate));
+      return {
+        user: {
+          body_power: Math.min(max.body, user.body_power + power),
+          brain_power: Math.min(max.brain, user.brain_power + power),
+          condition,
+        },
+        message: `${hasHouse ? '家で' : ''}ひと休みして元気を取り戻した（パワー +${power}、体力 +${condition - user.condition}）`,
+      };
+    },
+    'rest',
+  );
   return c.json<ActionResult>(result);
 });

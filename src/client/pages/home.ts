@@ -7,12 +7,19 @@ import { dateTime, gauge, yen } from '../format';
 import { formatKg } from '../../shared/weight';
 import { escapeHtml } from '../html';
 import { postAction, postActionRepeat, renderLayout } from '../layout';
+import { noStaminaAttr } from '../../shared/stamina';
 
 // 状態のラベル（なければ「なし」）
 function statesHtml(me: Me): string {
   if (me.states.length === 0) return 'なし';
   const tone = { bad: 'minus', neutral: 'neutral', goodness: 'goodness' } as const;
   return me.states.map((s) => `<span class="chip chip-${tone[s.tone]}">${escapeHtml(s.label)}</span>`).join(' ');
+}
+
+// 仕事ができないときは、ボタンを押せなくして理由を title に出す
+function workDisabled(me: Me): string {
+  if (me.job.id === 'none') return ' disabled title="職業安定所で仕事を探しましょう"';
+  return noStaminaAttr(me.condition);
 }
 
 function statusTable(me: Me): string {
@@ -25,8 +32,7 @@ function statusTable(me: Me): string {
     ['職業', me.job.id === 'none' ? escapeHtml(me.job.name) : `${escapeHtml(me.job.name)}（Lv${me.job.level}）`],
     ['身体パワー', gauge(me.bodyPower.current, me.bodyPower.max)],
     ['頭脳パワー', gauge(me.brainPower.current, me.brainPower.max)],
-    ['コンディション', gauge(me.condition, 100)],
-    ['満腹度', gauge(me.fullness, 100)],
+    ['体力', gauge(me.condition, 100)],
     ['身長', `${me.height} cm`],
     ['体重', formatKg(me.weight)],
     ['BMI', String(me.bmi)],
@@ -76,7 +82,7 @@ export async function renderHome(root: HTMLElement): Promise<void> {
         <div class="box">
           <h2>アクション</h2>
           <div class="actions">
-            <button type="button" id="work"${me.job.id === 'none' ? ' disabled title="職業安定所で仕事を探しましょう"' : ''}>仕事</button>
+            <button type="button" id="work"${workDisabled(me)}>仕事</button>
             <button type="button" id="rest">休息</button>
             <button type="button" id="rest-full" title="元気いっぱいになるまで休息をくり返す">しっかり休む</button>
             <a class="button" href="#/items">アイテム</a>

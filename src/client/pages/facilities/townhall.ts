@@ -2,6 +2,7 @@ import type { Me, ResidentView } from '../../../shared/types';
 import { api } from '../../api';
 import { GOODNESS } from '../../../shared/goodness';
 import { isBlocked } from '../../../shared/master/states';
+import { noStaminaAttr } from '../../../shared/stamina';
 import { yen } from '../../format';
 import { escapeHtml } from '../../html';
 import { postAction } from '../../layout';
@@ -37,8 +38,8 @@ export async function renderTownhall(container: HTMLElement, me: Me, rerender: (
       </form>
       <div class="box">
         <h3>ボランティア</h3>
-        <p class="note">町のゴミ拾い。身体パワー ${GOODNESS.volunteerPowerCost} と満腹度 ${GOODNESS.volunteerFullnessCost} を使って善悪 +${GOODNESS.volunteerGain}</p>
-        <button type="button" id="volunteer"${volunteerBlocked ? ' disabled' : ''}>参加する</button>
+        <p class="note">町のゴミ拾い。身体パワー ${GOODNESS.volunteerPowerCost} と体力 ${GOODNESS.volunteerConditionCost} を使って善悪 +${GOODNESS.volunteerGain}</p>
+        <button type="button" id="volunteer"${volunteerBlocked ? ' disabled' : noStaminaAttr(me.condition)}>参加する</button>
       </div>
     </div>
     <p>住民数: ${residents.length}人（総資産 = 持ち金 + 預金 + 所有物件の評価額）</p>

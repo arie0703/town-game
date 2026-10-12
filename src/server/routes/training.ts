@@ -1,6 +1,6 @@
 import { Hono } from 'hono';
 import type { Abilities, AbilityKey } from '../../shared/abilities';
-import { LIMITS, TRAINING } from '../../shared/config';
+import { TRAINING } from '../../shared/config';
 import { describeGain } from '../../shared/master/effects';
 import { findTraining } from '../../shared/master/trainings';
 import type { ActionResult } from '../../shared/types';
@@ -8,9 +8,9 @@ import { formatKg } from '../../shared/weight';
 import { requireAuth, type AuthEnv } from '../auth';
 import { GameError } from '../game/errors';
 import { addAbilities, runAction } from '../game/player';
-import { addWeight, afterAction, clamp } from '../game/status';
+import { addWeight, assertStamina, spendCondition } from '../game/status';
 
-// コンディションで上昇量を補正する（最低 +1）
+// 体力で上昇量を補正する（最低 +1）
 function scaledGain(gain: Partial<Abilities>, condition: number): Partial<Abilities> {
   const { rate } = TRAINING.rateByCondition.find((r) => condition >= r.minCondition)!;
   const result: Partial<Abilities> = {};
@@ -34,21 +34,20 @@ trainingRoutes.post('/training', requireAuth, async (c) => {
     if (user[powerColumn] < training.powerCost) {
       throw new GameError(`${isGym ? '身体' : '頭脳'}パワーが足りません。休息しましょう`);
     }
+    if (isGym) assertStamina(user.condition, 'トレーニングできません');
     if (user.money < training.fee) throw new GameError(isGym ? '利用料が足りません' : '授業料が足りません');
 
     const gain = scaledGain(training.gain, user.condition);
-    const after = afterAction(user, training.fullnessCost);
     const weightG = addWeight(user.weight_g, training.weight ?? 0);
     const extras = [
-      training.condition ? `コンディション ${training.condition > 0 ? '+' : ''}${training.condition}` : '',
+      training.condition ? `体力 ${training.condition > 0 ? '+' : ''}${training.condition}` : '',
       training.weight ? `体重 ${training.weight > 0 ? '+' : '-'}${formatKg(Math.abs(training.weight))}` : '',
     ].filter(Boolean);
     return {
       user: {
         money: user.money - training.fee,
         [powerColumn]: user[powerColumn] - training.powerCost,
-        fullness: after.fullness,
-        condition: clamp(after.condition + (training.condition ?? 0), 0, LIMITS.conditionMax),
+        condition: spendCondition(user.condition, -(training.condition ?? 0)),
         weight_g: weightG,
       },
       abilities: addAbilities(abilities, gain),

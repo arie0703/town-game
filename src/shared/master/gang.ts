@@ -10,7 +10,7 @@ export const GANG = {
   leaveFee: 30_000, // 足を洗うときの足抜け料
   shinogi: {
     powerCost: 30,
-    fullnessCost: 10,
+    conditionCost: 5, // 体力の消費
     goodness: -2,
     rateRange: [0.5, 1.5], // 基本額に掛ける振れ幅
     // シノギ中の出来事（上から順に判定）

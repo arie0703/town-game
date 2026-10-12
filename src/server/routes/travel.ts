@@ -2,12 +2,13 @@ import { Hono } from 'hono';
 import { yen } from '../../shared/format';
 import { describeEffect } from '../../shared/master/effects';
 import { findItem } from '../../shared/master/items';
-import { findTravel } from '../../shared/master/travels';
+import { findTravel, isHardTravel } from '../../shared/master/travels';
 import type { ActionResult } from '../../shared/types';
 import { requireAuth, type AuthEnv } from '../auth';
 import { applyEffect } from '../game/effects';
 import { GameError } from '../game/errors';
 import { runAction } from '../game/player';
+import { assertStamina } from '../game/status';
 import { chance } from '../game/random';
 
 export const travelRoutes = new Hono<AuthEnv>();
@@ -23,6 +24,7 @@ travelRoutes.post('/travel', requireAuth, async (c) => {
     (player) => {
       if (player.user.money < travel.cost) throw new GameError('お金が足りません');
       if (player.user.body_power < travel.powerCost) throw new GameError('身体パワーが足りません。休息しましょう');
+      if (isHardTravel(travel)) assertStamina(player.user.condition, 'この旅行には行けません');
 
       // 効果は費用・身体パワーを払った後の状態に反映する
       const user = { ...player.user, money: player.user.money - travel.cost, body_power: player.user.body_power - travel.powerCost };

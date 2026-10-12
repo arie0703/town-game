@@ -40,7 +40,6 @@ export type EventState = {
 export type EventEffect = {
   money?: number;
   goodness?: number;
-  fullness?: number;
   bodyPower?: number;
   brainPower?: number;
   condition?: number;
@@ -84,7 +83,7 @@ function jobEvents(): RandomEvent[] {
     // プログラマー系統
     { id: 'tool_went_viral', text: '書いたツールがバズった', jobs: JOB_LINES.programmer, weight: 10, tone: 'good', effect: payRate(1) },
     { id: 'production_down', text: '本番環境を落として給料がパーになった', jobs: JOB_LINES.programmer, weight: 8, tone: 'bad', when: hasPay, effect: (s, c) => ({ ...payRate(-1)(s, c), condition: -20 }) },
-    { id: 'all_night_debug', text: '徹夜でデバッグした', jobs: JOB_LINES.programmer, weight: 10, tone: 'bad', effect: { brainPower: -30, fullness: -20 } },
+    { id: 'all_night_debug', text: '徹夜でデバッグした', jobs: JOB_LINES.programmer, weight: 10, tone: 'bad', effect: { brainPower: -30, condition: -20 } },
 
     // フィットネストレーナー系統
     { id: 'client_success', text: 'お客さんが劇的に痩せて口コミが広がった', jobs: JOB_LINES.trainer, weight: 12, tone: 'good', effect: (s, c) => ({ ...payRate(0.5)(s, c), jobExp: 1 }) },
@@ -103,7 +102,7 @@ function jobEvents(): RandomEvent[] {
     // 相撲系統
     { id: 'kinboshi', text: '金星を挙げて懸賞金を得た', jobs: JOB_LINES.sumo, weight: 10, tone: 'good', effect: { money: 5_000, gain: { power: 1 } } },
     { id: 'sprained_ankle', text: '土俵際で足をくじいた', jobs: JOB_LINES.sumo, weight: 10, tone: 'bad', effect: { bodyPower: -40, condition: -20 } },
-    { id: 'too_much_chanko', text: 'ちゃんこを食べすぎた', jobs: JOB_LINES.sumo, weight: 12, tone: 'good', effect: { fullness: 30, weight: 1 } },
+    { id: 'too_much_chanko', text: 'ちゃんこを食べすぎた', jobs: JOB_LINES.sumo, weight: 12, tone: 'good', effect: { condition: 30, weight: 1 } },
 
     // 総合格闘技系統
     { id: 'ko_win', text: 'KO勝ちしてファイトマネーを得た', jobs: JOB_LINES.mma, weight: 10, tone: 'good', effect: payRate(1) },
@@ -112,7 +111,7 @@ function jobEvents(): RandomEvent[] {
 
     // カレー系統
     { id: 'gourmet_review', text: 'グルメサイトで高評価がついた', jobs: JOB_LINES.curry, weight: 12, tone: 'good', effect: (s, c) => ({ ...payRate(0.5)(s, c), jobExp: 1 }) },
-    { id: 'staff_curry', text: 'まかないのカレーがうまくできた', jobs: JOB_LINES.curry, weight: 12, tone: 'good', effect: { fullness: 30, weight: 0.3 } },
+    { id: 'staff_curry', text: 'まかないのカレーがうまくできた', jobs: JOB_LINES.curry, weight: 12, tone: 'good', effect: { condition: 30, weight: 0.3 } },
     { id: 'wrong_spice', text: 'スパイスの配合を間違えて給料が半分になった', jobs: JOB_LINES.curry, weight: 10, tone: 'bad', when: hasPay, effect: (s, c) => ({ ...payRate(-0.5)(s, c), gain: { science: -1 } }) },
 
     // バーテンダー系統
@@ -153,7 +152,7 @@ export const RANDOM_EVENTS: readonly RandomEvent[] = [
   { id: 'caught_peeing', text: '立ちションして注意された', actions: 'all', weight: 10, tone: 'bad', effect: { goodness: -5 } },
   // 善（ヨイ以上）のみ
   { id: 'commended', text: '善行が表彰された', actions: 'all', weight: 10, tone: 'good', when: (s) => isGood(s.goodness), effect: { money: 5_000 } },
-  { id: 'neighbor_gift', text: '近所の人から差し入れをもらった', actions: 'all', weight: 15, tone: 'good', when: (s) => isGood(s.goodness), effect: { fullness: 20 } },
+  { id: 'neighbor_gift', text: '近所の人から差し入れをもらった', actions: 'all', weight: 15, tone: 'good', when: (s) => isGood(s.goodness), effect: { condition: 20 } },
   // 悪（ワル以下）のみ
   {
     id: 'police_question',
@@ -216,7 +215,7 @@ export const RANDOM_EVENTS: readonly RandomEvent[] = [
     actions: ['cafeteria'],
     weight: 20,
     tone: 'good',
-    effect: { fullness: 20, weight: 0.3 },
+    effect: { condition: 20, weight: 0.3 },
   },
   {
     id: 'stomachache',
@@ -224,7 +223,7 @@ export const RANDOM_EVENTS: readonly RandomEvent[] = [
     actions: ['cafeteria'],
     weight: 15,
     tone: 'bad',
-    effect: { condition: -15, fullness: -20 },
+    effect: { condition: -35 },
   },
 
   // 居酒屋
@@ -307,7 +306,7 @@ export const RANDOM_EVENTS: readonly RandomEvent[] = [
   },
 ];
 
-// 効果の説明（「+100円 / コンディション +10」のような1行）。実際に反映された量で作る
+// 効果の説明（「+100円 / 体力 +10」のような1行）。実際に反映された量で作る
 export function describeEventEffect(effect: EventEffect): string {
   const parts = [
     effect.money ? `${effect.money > 0 ? '+' : '-'}${yen(Math.abs(effect.money))}` : '',

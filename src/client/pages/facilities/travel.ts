@@ -1,4 +1,5 @@
-import { TRAVELS } from '../../../shared/master/travels';
+import { isHardTravel, TRAVELS } from '../../../shared/master/travels';
+import { noStaminaAttr } from '../../../shared/stamina';
 import type { Me } from '../../../shared/types';
 import { abilityEffectHtml, conditionEffectHtml } from '../../components/effect';
 import { yen } from '../../format';
@@ -9,6 +10,8 @@ export async function renderTravel(container: HTMLElement, me: Me, rerender: () 
   const rows = TRAVELS.map((travel) => {
     // 持ち金・身体パワーが足りない旅行先は押せない
     const affordable = me.money >= travel.cost && me.bodyPower.current >= travel.powerCost;
+    // 体力が下がる過酷な旅行先は、体力が 0 だと行けない
+    const attr = !affordable ? ' disabled' : isHardTravel(travel) ? noStaminaAttr(me.condition) : '';
     return `
       <tr>
         <td>${travel.name}</td>
@@ -16,7 +19,7 @@ export async function renderTravel(container: HTMLElement, me: Me, rerender: () 
         <td class="nowrap">${travel.powerCost}</td>
         <td>${conditionEffectHtml(travel.effect)}</td>
         <td>${abilityEffectHtml(travel.effect)}</td>
-        <td class="nowrap"><button type="button" data-travel="${travel.id}"${affordable ? '' : ' disabled'}>Go</button></td>
+        <td class="nowrap"><button type="button" data-travel="${travel.id}"${attr}>Go</button></td>
       </tr>
     `;
   }).join('');

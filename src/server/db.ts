@@ -1,5 +1,5 @@
 import Database from 'better-sqlite3';
-import { Kysely, SqliteDialect, type Generated } from 'kysely';
+import { Kysely, sql, SqliteDialect, type Generated } from 'kysely';
 import { ABILITIES, type AbilityKey } from '../shared/abilities';
 import type { BuildingType, StoreKind } from '../shared/master/buildings';
 import { MAP_CELLS } from '../shared/master/map';
@@ -17,10 +17,10 @@ export interface UsersTable {
   job_id: string;
   body_power: number;
   brain_power: number;
-  condition: number;
+  condition: number; // 体力（コンディションと満腹度を統合したもの）
   height: number;
   weight_g: number; // 体重（グラム）
-  fullness: number;
+  fullness: number; // 使わなくなった列（体力に統合済み。-1 = 移行済み）
   created_at: string;
 }
 
@@ -194,6 +194,9 @@ export async function initDb(): Promise<void> {
     .set({ job_id: 'none' })
     .where('job_id', 'not in', JOBS.map((j) => j.id))
     .execute();
+
+  // コンディションと満腹度を体力に統合: 体力 = (コンディション + 満腹度) ÷ 2。移行済みの住民は fullness = -1
+  await sql`UPDATE users SET condition = MIN(100, (condition + fullness) / 2), fullness = -1 WHERE fullness >= 0`.execute(db);
 
   // マップの変更で空き地でなくなった場所の土地は、購入額を返金して手放させる
   const lotIds = MAP_CELLS.filter((c) => c.type === 'lot').map((c) => c.id);

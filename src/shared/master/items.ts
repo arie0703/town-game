@@ -1,10 +1,8 @@
 import type { ConsumableEffect } from './effects';
 import { describeEffect } from './effects';
 
-// type はお店での分類の目安。効果はどの種類にも付けられるが、満腹度（fullness）は食事のみ
-export type ItemEffect =
-  | ({ type: 'food'; fullness: number } & ConsumableEffect)
-  | ({ type: 'ability' | 'recovery' | 'special' | 'souvenir'; fullness?: never } & ConsumableEffect);
+// type はお店での分類の目安（効果はどの種類にも付けられる）。食事は体力が満タンのときは食べられない
+export type ItemEffect = { type: 'food' | 'ability' | 'recovery' | 'special' | 'souvenir' } & ConsumableEffect;
 
 // shop: 販売している店（お店 / 闇市場）。travel は旅行のお土産で、どこでも売っていない
 export type Item = { id: string; name: string; price: number; shop: 'shop' | 'blackmarket' | 'travel'; effect: ItemEffect };
@@ -23,14 +21,14 @@ export const ITEMS: readonly Item[] = [
   // 旅行のお土産（通常）: 旅行で確率で手に入り、所持アイテムとしていつでも使える。お店では売っていない
   { id: 'onsen_powder', name: '湯の花の素', price: 0, shop: 'travel', effect: { type: 'recovery', condition: 40, gain: { health: 1 } } },
   { id: 'kampo_medicine', name: '秘伝の漢方薬', price: 0, shop: 'travel', effect: { type: 'recovery', bodyPower: 100, brainPower: 100, gain: { health: 2 } } },
-  { id: 'prosciutto', name: '生ハムの塊', price: 0, shop: 'travel', effect: { type: 'food', fullness: 60, bodyPower: 40, weight: 1.0, gain: { power: 2 } } },
+  { id: 'prosciutto', name: '生ハムの塊', price: 0, shop: 'travel', effect: { type: 'food', condition: 60, bodyPower: 40, weight: 1.0, gain: { power: 2 } } },
   { id: 'guarana_extract', name: 'ガラナエキス', price: 0, shop: 'travel', effect: { type: 'recovery', bodyPower: 150, condition: 20, gain: { speed: 2 } } },
   { id: 'ancient_papyrus', name: '古代のパピルス', price: 0, shop: 'travel', effect: { type: 'ability', gain: { social: 8, science: 5, language: 3 } } },
   // 食事
-  { id: 'bread', name: 'パン', price: 300, shop: 'shop', effect: { type: 'food', fullness: 20, weight: 0.8, bodyPower: 10, condition: 5, gain: { stamina: 1 } } },
-  { id: 'spicy_noodle', name: '激辛カップ麺', price: 150, shop: 'shop', effect: { type: 'food', fullness: 30, weight: 0.7, condition: -10, gain: { humor: 1 } } },
-  { id: 'bento', name: 'お弁当', price: 600, shop: 'shop', effect: { type: 'food', fullness: 40, weight: 1.5, bodyPower: 20, brainPower: 10, condition: 10, gain: { health: 1 } } },
-  { id: 'steak', name: 'ステーキ', price: 1_500, shop: 'shop', effect: { type: 'food', fullness: 70, weight: 3.0, bodyPower: 40, condition: 15, gain: { power: 2, arm: 1 } } },
+  { id: 'bread', name: 'パン', price: 300, shop: 'shop', effect: { type: 'food', condition: 25, weight: 0.8, bodyPower: 10, gain: { stamina: 1 } } },
+  { id: 'spicy_noodle', name: '激辛カップ麺', price: 150, shop: 'shop', effect: { type: 'food', condition: 20, weight: 0.7, gain: { humor: 1 } } },
+  { id: 'bento', name: 'お弁当', price: 600, shop: 'shop', effect: { type: 'food', condition: 50, weight: 1.5, bodyPower: 20, brainPower: 10, gain: { health: 1 } } },
+  { id: 'steak', name: 'ステーキ', price: 1_500, shop: 'shop', effect: { type: 'food', condition: 85, weight: 3.0, bodyPower: 40, gain: { power: 2, arm: 1 } } },
   // 能力アップ
   { id: 'math_book', name: '数学の参考書', price: 2_000, shop: 'shop', effect: { type: 'ability', gain: { math: 5 } } },
   { id: 'dictionary', name: '国語辞典', price: 2_000, shop: 'shop', effect: { type: 'ability', gain: { japanese: 5 } } },
@@ -59,11 +57,11 @@ export const ITEMS: readonly Item[] = [
   { id: 'charm_perfume', name: '魅惑の香水', price: 60_000, shop: 'blackmarket', effect: { type: 'ability', gain: { looks: 20, love: 20 } } },
   { id: 'laugh_charm', name: '笑いの神のお守り', price: 50_000, shop: 'blackmarket', effect: { type: 'ability', gain: { humor: 30 } } },
   // 闇市場: 怪しい食べ物
-  // ブリザデイロ: 濃厚な激甘スイーツ（違法な物質入り）。コンディションは下がるが、LOVE と体重が大きく増える
-  { id: 'brigadeiro', name: 'ブリザデイロ', price: 2_500, shop: 'blackmarket', effect: { type: 'food', fullness: 20, weight: 5.0, condition: -10, gain: { love: 10 } } },
-  { id: 'magic_shake', name: 'マジックプロテインシェイク', price: 15_000, shop: 'blackmarket', effect: { type: 'food', fullness: 15, weight: 1.0, bodyPower: 80, condition: -5, gain: { power: 8, arm: 5 } } },
-  { id: 'hemp_icecream', name: 'ヘンプアイスクリーム', price: 3_000, shop: 'blackmarket', effect: { type: 'food', fullness: 15, weight: 0.8, condition: 30, brainPower: -20, gain: { humor: 5 } } },
-  { id: 'mystery_ramen', name: '謎肉ラーメン', price: 1_800, shop: 'blackmarket', effect: { type: 'food', fullness: 60, weight: 2.5, bodyPower: 40, condition: -5, gain: { stamina: 3 } } },
+  // ブリザデイロ: 濃厚な激甘スイーツ（違法な物質入り）。体力は下がるが、LOVE と体重が大きく増える
+  { id: 'brigadeiro', name: 'ブリザデイロ', price: 2_500, shop: 'blackmarket', effect: { type: 'food', condition: 10, weight: 5.0, gain: { love: 10 } } },
+  { id: 'magic_shake', name: 'マジックプロテインシェイク', price: 15_000, shop: 'blackmarket', effect: { type: 'food', condition: 10, weight: 1.0, bodyPower: 80, gain: { power: 8, arm: 5 } } },
+  { id: 'hemp_icecream', name: 'ヘンプアイスクリーム', price: 3_000, shop: 'blackmarket', effect: { type: 'food', condition: 45, weight: 0.8, brainPower: -20, gain: { humor: 5 } } },
+  { id: 'mystery_ramen', name: '謎肉ラーメン', price: 1_800, shop: 'blackmarket', effect: { type: 'food', condition: 55, weight: 2.5, bodyPower: 40, gain: { stamina: 3 } } },
 ];
 
 // 並び順: 種類（ITEM_TYPE_LABEL の定義順）→ マスタの定義順

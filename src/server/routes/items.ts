@@ -18,8 +18,9 @@ async function readBody(req: Request): Promise<Record<string, unknown>> {
   return ((await req.json().catch(() => null)) ?? {}) as Record<string, unknown>;
 }
 
-function assertNotFull(fullness: number): void {
-  if (fullness >= LIMITS.fullnessMax) throw new GameError('お腹いっぱいで食べられません');
+// 食事は体力が満タンのときはできない
+function assertNotFull(condition: number): void {
+  if (condition >= LIMITS.conditionMax) throw new GameError('体力が満タンなので食べられません');
 }
 
 export const itemRoutes = new Hono<AuthEnv>();
@@ -68,7 +69,7 @@ itemRoutes.post('/items/use', requireAuth, async (c) => {
     const owned = player.items[item.id] ?? 0;
     if (owned <= 0) throw new GameError(`${item.name}を持っていません`);
     if (item.effect.type === 'souvenir') throw new GameError('ここでは使えないようだ');
-    if (item.effect.type === 'food') assertNotFull(player.user.fullness);
+    if (item.effect.type === 'food') assertNotFull(player.user.condition);
     const { user, abilities } = applyEffect(player, item.effect);
     const verb = item.effect.type === 'food' ? '食べた' : '使った';
     return {
@@ -88,8 +89,8 @@ itemRoutes.post('/eat', requireAuth, async (c) => {
   if (!menu) throw new GameError('そのメニューはありません');
 
   const result = await runAction(c.get('userId'), (player) => {
-    // お酒は別腹（満腹でも飲める）
-    if (!menu.drink) assertNotFull(player.user.fullness);
+    // お酒は別腹（体力が満タンでも飲める）
+    if (!menu.drink) assertNotFull(player.user.condition);
     if (player.user.money < menu.price) throw new GameError('お金が足りません');
     const change = applyEffect(player, menu.effect);
     return {
@@ -107,10 +108,10 @@ itemRoutes.post('/cafeteria/soup', requireAuth, async (c) => {
     if (user.money !== 0) throw new GameError('炊き出しは一文無しの方限定です');
     if (user.deposit > 0) throw new GameError('銀行に預金がある方は炊き出しを利用できません');
     if (lands.length > 0) throw new GameError('不動産をお持ちの方は炊き出しを利用できません');
-    assertNotFull(user.fullness);
+    assertNotFull(user.condition);
     return {
       user: {
-        fullness: clamp(user.fullness + SOUP_KITCHEN.fullnessRecovery, 0, LIMITS.fullnessMax),
+        condition: clamp(user.condition + SOUP_KITCHEN.conditionRecovery, 0, LIMITS.conditionMax),
         soup_kitchen_count: user.soup_kitchen_count + 1,
       },
       message: `炊き出しの列に並んだ（おにぎり1個をもらった。通算${user.soup_kitchen_count + 1}回目）`,

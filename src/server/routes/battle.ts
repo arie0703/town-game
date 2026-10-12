@@ -9,7 +9,7 @@ import { GameError } from '../game/errors';
 import { combatPower, winRate } from '../game/fight';
 import { loadPlayer, runAction } from '../game/player';
 import { chance, pickRandom, randomIntInclusive } from '../game/random';
-import { afterAction, clamp } from '../game/status';
+import { assertStamina, spendCondition, clamp } from '../game/status';
 
 export const battleRoutes = new Hono<AuthEnv>();
 
@@ -47,21 +47,22 @@ battleRoutes.post('/fight', requireAuth, async (c) => {
 
   const result = await runAction(userId, ({ user, abilities }) => {
     if (user.body_power < FIGHT.powerCost) throw new GameError('身体パワーが足りません。休息しましょう');
+    assertStamina(user.condition, '戦えません');
 
     const mine = combatPower(abilities, user.condition);
     const theirs = combatPower(opponent.abilities, opponent.user.condition);
     const rate = winRate(mine, theirs);
     const won = chance(rate);
-    const after = afterAction(user, FIGHT.fullnessCost);
+    const condition = spendCondition(user.condition, FIGHT.conditionCost);
     const head = `${opponent.user.name}さんにストリートファイトを挑んだ（戦闘力 ${mine} vs ${theirs}、勝率 ${Math.round(rate * 100)}%）。`;
-    const base = { body_power: user.body_power - FIGHT.powerCost, fullness: after.fullness };
+    const base = { body_power: user.body_power - FIGHT.powerCost };
 
     // 悪（ワル以下）は賞金が増え、善（ヨイ以上）は負けたときの損失が減る
     const rank = goodnessRank(user.goodness);
     if (won) {
       const prize = Math.floor(theirs * FIGHT.prizePerPower * (GOODNESS.fightPrizeRate[rank] ?? 1));
       return {
-        user: { ...base, money: user.money + prize, condition: after.condition },
+        user: { ...base, money: user.money + prize, condition },
         message: `${head}勝利！賞金${yen(prize)}を手に入れた`,
       };
     }
@@ -71,7 +72,7 @@ battleRoutes.post('/fight', requireAuth, async (c) => {
       user: {
         ...base,
         money: user.money - lost,
-        condition: clamp(after.condition - FIGHT.loseConditionDamage, 0, LIMITS.conditionMax),
+        condition: clamp(condition - FIGHT.loseConditionDamage, 0, LIMITS.conditionMax),
       },
       message: `${head}敗北…持ち金の${lossRate === 0.5 ? '半分' : '3分の1'}を失った（-${yen(lost)}）`,
     };

@@ -17,7 +17,6 @@ export function applyEffect(
   const condition = conditionRecovery(effect.condition ?? 0, bmi(user.height, user.weight_g));
   return {
     user: {
-      fullness: clamp(user.fullness + (effect.fullness ?? 0), 0, LIMITS.fullnessMax),
       body_power: clamp(user.body_power + (effect.bodyPower ?? 0), 0, max.body),
       brain_power: clamp(user.brain_power + (effect.brainPower ?? 0), 0, max.brain),
       condition: clamp(user.condition + condition, 0, LIMITS.conditionMax),

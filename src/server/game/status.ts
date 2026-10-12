@@ -1,4 +1,6 @@
 import { ABILITIES, type Abilities, type AbilityCategory } from '../../shared/abilities';
+import { hasStamina } from '../../shared/stamina';
+import { GameError } from './errors';
 import { BODY, LIMITS, STATUS } from '../../shared/config';
 import { kgToG } from '../../shared/weight';
 
@@ -39,21 +41,18 @@ export function isBmiNormal(value: number): boolean {
   return value >= min && value <= max;
 }
 
-// コンディション回復量に BMI 補正をかける（標準範囲外なら減る）。マイナス（低下）には補正をかけない
+// 体力回復量に BMI 補正をかける（標準範囲外なら減る）。マイナス（低下）には補正をかけない
 export function conditionRecovery(base: number, bmiValue: number): number {
   if (base <= 0 || isBmiNormal(bmiValue)) return base;
   return Math.floor(base * STATUS.bmiOutOfRangeRecoveryRate);
 }
 
-// 行動したときの満腹度・コンディションの変化（各アクション共通）
-// 満腹度を fullnessCost 減らし、減らす前の満腹度が閾値未満ならコンディションも下げる
-export function afterAction(
-  state: { fullness: number; condition: number },
-  fullnessCost: number,
-): { fullness: number; condition: number } {
-  const penalty = state.fullness < STATUS.lowFullnessThreshold ? STATUS.lowFullnessConditionPenalty : 0;
-  return {
-    fullness: clamp(state.fullness - fullnessCost, 0, LIMITS.fullnessMax),
-    condition: clamp(state.condition - penalty, 0, LIMITS.conditionMax),
-  };
+// 体力が 0 なら行動を断る（verb: 「働けません」など）
+export function assertStamina(condition: number, verb: string): void {
+  if (!hasStamina(condition)) throw new GameError(`体力が残っていないので${verb}。食事か休息で回復しましょう`);
+}
+
+// 行動で体力を cost 減らす（0 未満にはしない。cost がマイナスなら回復）
+export function spendCondition(condition: number, cost: number): number {
+  return clamp(condition - cost, 0, LIMITS.conditionMax);
 }

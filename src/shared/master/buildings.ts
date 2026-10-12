@@ -23,7 +23,7 @@ export const REALESTATE = {
 } as const;
 
 // 収入イベントの結果
-//   income: 通常の収入に掛ける倍率（0 = 収入なし）、money: 固定額の増減、condition: コンディションの増減
+//   income: 通常の収入に掛ける倍率（0 = 収入なし）、money: 固定額の増減、condition: 体力の増減
 //   robbery: 強盗（身体パワーで撃退判定。撃退なら収入 × 2 の賞金、失敗なら収入 × 2 を失う）
 export type IncomeOutcome = {
   id: string;

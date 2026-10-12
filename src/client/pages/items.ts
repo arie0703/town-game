@@ -35,7 +35,7 @@ export async function renderItems(root: HTMLElement): Promise<void> {
   main.innerHTML = `
     <section class="box">
       <h2>所持アイテム</h2>
-      <p>満腹度: ${me.fullness} / 100　コンディション: ${me.condition} / 100　身体パワー: ${me.bodyPower.current} / ${me.bodyPower.max}　頭脳パワー: ${me.brainPower.current} / ${me.brainPower.max}</p>
+      <p>体力: ${me.condition} / 100　身体パワー: ${me.bodyPower.current} / ${me.bodyPower.max}　頭脳パワー: ${me.brainPower.current} / ${me.brainPower.max}</p>
       ${
         inventory.length === 0
           ? '<p>アイテムを持っていません。<a href="#/facility/shop">お店</a>で買いましょう。</p>'

@@ -38,10 +38,10 @@ function soupKitchenHtml(me: Me): string {
 }
 
 export async function renderCafeteria(container: HTMLElement, me: Me, rerender: () => Promise<void>): Promise<void> {
-  const full = me.fullness >= LIMITS.fullnessMax;
+  const full = me.condition >= LIMITS.conditionMax;
   container.innerHTML = `
-    <p>持ち金: ${yen(me.money)}　満腹度: ${me.fullness} / ${LIMITS.fullnessMax}</p>
-    ${full ? '<p class="text-error">満腹で注文できません</p>' : ''}
+    <p>持ち金: ${yen(me.money)}　体力: ${me.condition} / ${LIMITS.conditionMax}</p>
+    ${full ? '<p class="text-error">体力が満タンなので注文できません</p>' : ''}
     ${menuTableHtml(menusOf('cafeteria'), 'メニュー')}
     ${soupKitchenHtml(me)}
   `;

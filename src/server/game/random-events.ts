@@ -59,7 +59,6 @@ export function applyEventEffect(
   const max = maxPowers({ ...abilities, ...gained } as Abilities);
 
   const money = Math.max(0, user.money + (effect.money ?? 0));
-  const fullness = clamp(user.fullness + (effect.fullness ?? 0), 0, LIMITS.fullnessMax);
   const bodyPower = clamp(user.body_power + (effect.bodyPower ?? 0), 0, max.body);
   const brainPower = clamp(user.brain_power + (effect.brainPower ?? 0), 0, max.brain);
   const condition = clamp(user.condition + (effect.condition ?? 0), 0, LIMITS.conditionMax);
@@ -88,7 +87,6 @@ export function applyEventEffect(
       user: {
         ...change.user,
         money,
-        fullness,
         body_power: bodyPower,
         brain_power: brainPower,
         condition,
@@ -101,7 +99,6 @@ export function applyEventEffect(
     },
     applied: {
       money: money - user.money,
-      fullness: fullness - user.fullness,
       bodyPower: bodyPower - user.body_power,
       brainPower: brainPower - user.brain_power,
       condition: condition - user.condition,

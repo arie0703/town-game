@@ -48,7 +48,6 @@ export async function loadMe(userId: number): Promise<Me | null> {
     height: user.height,
     weight: gToKg(user.weight_g),
     bmi: bmi(user.height, user.weight_g),
-    fullness: user.fullness,
     abilities,
     brainTotal: categoryTotal(abilities, 'brain'),
     bodyTotal: categoryTotal(abilities, 'body'),
