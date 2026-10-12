@@ -42,7 +42,7 @@ export async function renderCafeteria(container: HTMLElement, me: Me, rerender: 
   container.innerHTML = `
     <p>持ち金: ${yen(me.money)}　体力: ${me.condition} / ${LIMITS.conditionMax}</p>
     ${full ? '<p class="text-error">体力が満タンなので注文できません</p>' : ''}
-    ${menuTableHtml(menusOf('cafeteria'), 'メニュー')}
+    ${menuTableHtml(menusOf('cafeteria'), 'メニュー', me.bmi)}
     ${soupKitchenHtml(me)}
   `;
   bindMenuButtons(container, rerender, '#/home');

@@ -1,7 +1,7 @@
 import { ABILITIES, type Abilities, type AbilityCategory } from '../../shared/abilities';
 import { hasStamina } from '../../shared/stamina';
 import { GameError } from './errors';
-import { BODY, LIMITS, STATUS } from '../../shared/config';
+import { BODY, LIMITS } from '../../shared/config';
 import { kgToG } from '../../shared/weight';
 
 export function clamp(value: number, min: number, max: number): number {
@@ -36,16 +36,7 @@ export function addHeight(heightCm: number, deltaCm: number): number {
   return clamp(heightCm + deltaCm, BODY.minHeight, BODY.maxHeight);
 }
 
-export function isBmiNormal(value: number): boolean {
-  const [min, max] = STATUS.bmiNormalRange;
-  return value >= min && value <= max;
-}
-
-// 体力回復量に BMI 補正をかける（標準範囲外なら減る）。マイナス（低下）には補正をかけない
-export function conditionRecovery(base: number, bmiValue: number): number {
-  if (base <= 0 || isBmiNormal(bmiValue)) return base;
-  return Math.floor(base * STATUS.bmiOutOfRangeRecoveryRate);
-}
+export { conditionRecovery, isBmiNormal } from '../../shared/bmi';
 
 // 体力が 0 なら行動を断る（verb: 「働けません」など）
 export function assertStamina(condition: number, verb: string): void {

@@ -8,7 +8,8 @@ import { requireAuth, type AuthEnv } from '../auth';
 import { applyEffect } from '../game/effects';
 import { GameError } from '../game/errors';
 import { runAction } from '../game/player';
-import { assertStamina } from '../game/status';
+import { assertStamina, bmi } from '../game/status';
+import { effectForBmi } from '../../shared/bmi';
 import { chance } from '../game/random';
 
 export const travelRoutes = new Hono<AuthEnv>();
@@ -37,7 +38,7 @@ travelRoutes.post('/travel', requireAuth, async (c) => {
         user: { ...change.user, money: paid.user.money },
         abilities: change.abilities,
         items,
-        message: `${travel.name}に行ってきた（${yen(travel.cost)}、身体パワー -${travel.powerCost}、${describeEffect(travel.effect)}）${souvenirText}`,
+        message: `${travel.name}に行ってきた（${yen(travel.cost)}、身体パワー -${travel.powerCost}、${describeEffect(effectForBmi(travel.effect, bmi(player.user.height, player.user.weight_g)))}）${souvenirText}`,
         context: { travelCost: travel.cost },
       };
     },

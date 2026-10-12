@@ -1,5 +1,4 @@
 import type { ConsumableEffect } from './effects';
-import { describeEffect } from './effects';
 
 // type はお店での分類の目安（効果はどの種類にも付けられる）。食事は体力が満タンのときは食べられない
 export type ItemEffect = { type: 'food' | 'ability' | 'recovery' | 'special' | 'souvenir' } & ConsumableEffect;
@@ -80,6 +79,3 @@ export function findItem(id: string): Item | undefined {
   return ITEMS.find((i) => i.id === id);
 }
 
-export function describeItem(item: Item): string {
-  return describeEffect(item.effect);
-}

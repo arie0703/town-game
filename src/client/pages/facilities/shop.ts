@@ -1,4 +1,5 @@
 import { isBad } from '../../../shared/goodness';
+import { effectForBmi } from '../../../shared/bmi';
 import { ITEM_TYPE_LABEL, itemsOf, type Item } from '../../../shared/master/items';
 import { abilityEffectHtml, conditionEffectHtml } from '../../components/effect';
 import type { InventoryItem, Me } from '../../../shared/types';
@@ -20,7 +21,7 @@ async function renderItemShop(
       <tr>
         <td>${ITEM_TYPE_LABEL[item.effect.type]}</td>
         <td>${item.name}</td>
-        <td>${conditionEffectHtml(item.effect)}</td>
+        <td>${conditionEffectHtml(effectForBmi(item.effect, me.bmi))}</td>
         <td>${abilityEffectHtml(item.effect)}</td>
         <td>${yen(item.price)}</td>
         <td>${owned(item.id)}</td>

@@ -2,15 +2,20 @@ import { Hono } from 'hono';
 import { LIMITS, SOUP_KITCHEN } from '../../shared/config';
 import { yen } from '../../shared/format';
 import { isBad } from '../../shared/goodness';
-import { describeItem, findItem } from '../../shared/master/items';
-import { describeMenu, findMenu } from '../../shared/master/menus';
+import { effectForBmi } from '../../shared/bmi';
+import { describeEffect } from '../../shared/master/effects';
+import { findItem } from '../../shared/master/items';
+import { findMenu } from '../../shared/master/menus';
 import type { ActionResult, InventoryItem } from '../../shared/types';
 import { requireAuth, type AuthEnv } from '../auth';
 import { db } from '../db';
 import { GameError } from '../game/errors';
 import { applyEffect } from '../game/effects';
-import { loadPlayer, runAction } from '../game/player';
-import { clamp } from '../game/status';
+import { loadPlayer, runAction, type Player } from '../game/player';
+import { bmi, clamp } from '../game/status';
+
+// 体力の回復量は BMI 補正後の実際の値でメッセージに出す
+const bmiOf = ({ user }: Player) => bmi(user.height, user.weight_g);
 
 const MAX_PURCHASE_QUANTITY = 99;
 
@@ -76,7 +81,7 @@ itemRoutes.post('/items/use', requireAuth, async (c) => {
       user,
       abilities,
       items: { [item.id]: owned - 1 },
-      message: `${item.name}を${verb}（${describeItem(item)}）`,
+      message: `${item.name}を${verb}（${describeEffect(effectForBmi(item.effect, bmiOf(player)))}）`,
     };
   }, 'item');
   return c.json<ActionResult>(result);
@@ -96,7 +101,7 @@ itemRoutes.post('/eat', requireAuth, async (c) => {
     return {
       user: { ...change.user, money: player.user.money - menu.price },
       abilities: change.abilities,
-      message: `${menu.shop === 'izakaya' ? '居酒屋' : '食堂'}で${menu.name}を${menu.drink ? '飲んだ' : '食べた'}（${yen(menu.price)}、${describeMenu(menu)}）`,
+      message: `${menu.shop === 'izakaya' ? '居酒屋' : '食堂'}で${menu.name}を${menu.drink ? '飲んだ' : '食べた'}（${yen(menu.price)}、${describeEffect(effectForBmi(menu.effect, bmiOf(player)))}）`,
     };
   }, menu.shop === 'izakaya' ? 'izakaya' : 'cafeteria');
   return c.json<ActionResult>(result);

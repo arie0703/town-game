@@ -1,16 +1,18 @@
 import type { Menu } from '../../shared/master/menus';
+import { effectForBmi } from '../../shared/bmi';
 import { abilityEffectHtml, conditionEffectHtml } from './effect';
 import { yen } from '../format';
 import { postAction } from '../layout';
 
 // 食堂・居酒屋のメニュー表
-export function menuTableHtml(menus: Menu[], caption: string): string {
+// bmi: 体力の回復量は BMI 補正後の実際の値で表示する
+export function menuTableHtml(menus: Menu[], caption: string, bmi: number): string {
   const rows = menus
     .map(
       (menu) => `
         <tr>
           <td>${menu.name}</td>
-          <td>${conditionEffectHtml(menu.effect)}</td>
+          <td>${conditionEffectHtml(effectForBmi(menu.effect, bmi))}</td>
           <td>${abilityEffectHtml(menu.effect)}</td>
           <td class="nowrap">${yen(menu.price)}</td>
           <td class="nowrap"><button type="button" data-menu="${menu.id}">${menu.drink ? '飲む' : '食べる'}</button></td>

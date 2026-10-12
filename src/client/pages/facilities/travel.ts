@@ -1,5 +1,6 @@
 import { isHardTravel, TRAVELS } from '../../../shared/master/travels';
 import { noStaminaAttr } from '../../../shared/stamina';
+import { effectForBmi } from '../../../shared/bmi';
 import type { Me } from '../../../shared/types';
 import { abilityEffectHtml, conditionEffectHtml } from '../../components/effect';
 import { yen } from '../../format';
@@ -17,7 +18,7 @@ export async function renderTravel(container: HTMLElement, me: Me, rerender: () 
         <td>${travel.name}</td>
         <td class="nowrap">${yen(travel.cost)}</td>
         <td class="nowrap">${travel.powerCost}</td>
-        <td>${conditionEffectHtml(travel.effect)}</td>
+        <td>${conditionEffectHtml(effectForBmi(travel.effect, me.bmi))}</td>
         <td>${abilityEffectHtml(travel.effect)}</td>
         <td class="nowrap"><button type="button" data-travel="${travel.id}"${attr}>Go</button></td>
       </tr>

@@ -1,5 +1,4 @@
 import type { ConsumableEffect } from './effects';
-import { describeEffect } from './effects';
 
 // 食堂・居酒屋のメニュー。drink: お酒（体力が満タンでも飲める）
 export type Menu = {
@@ -44,6 +43,3 @@ export function findMenu(id: string): Menu | undefined {
   return MENUS.find((m) => m.id === id);
 }
 
-export function describeMenu(menu: Menu): string {
-  return describeEffect(menu.effect);
-}

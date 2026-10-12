@@ -1,4 +1,5 @@
 import { compareItems, findItem, ITEM_TYPE_LABEL, type Item } from '../../shared/master/items';
+import { effectForBmi } from '../../shared/bmi';
 import { abilityEffectHtml, conditionEffectHtml } from '../components/effect';
 import type { InventoryItem } from '../../shared/types';
 import { api } from '../api';
@@ -22,7 +23,7 @@ export async function renderItems(root: HTMLElement): Promise<void> {
         <tr>
           <td>${ITEM_TYPE_LABEL[item.effect.type]}</td>
           <td>${item.name}</td>
-          <td>${conditionEffectHtml(item.effect)}</td>
+          <td>${conditionEffectHtml(effectForBmi(item.effect, me.bmi))}</td>
           <td>${abilityEffectHtml(item.effect)}</td>
           <td>${quantity}</td>
           <td>${item.effect.type === 'souvenir' ? '' : `<button type="button" data-use="${item.id}">使う</button>`}</td>
