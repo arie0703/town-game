@@ -3,7 +3,8 @@ import { ABILITIES, type Abilities } from '../../shared/abilities';
 import { goodnessRank } from '../../shared/goodness';
 import { jobLevel, jobName } from '../../shared/master/jobs';
 import { isStateId, stateLabel, STATES } from '../../shared/master/states';
-import type { EventItem, Me } from '../../shared/types';
+import { TITLES } from '../../shared/master/titles';
+import type { EventItem, Me, TitleView } from '../../shared/types';
 import { clearLoginCookie, requireAuth, type AuthEnv } from '../auth';
 import { gToKg } from '../../shared/weight';
 import { db } from '../db';
@@ -76,4 +77,19 @@ meRoutes.get('/events', requireAuth, async (c) => {
     .execute();
   const events: EventItem[] = rows.map((r) => ({ id: r.id, message: r.message, createdAt: r.created_at }));
   return c.json(events);
+});
+
+// 称号の一覧（マスタの順。未獲得は名前・説明を伏せる）
+meRoutes.get('/titles', requireAuth, async (c) => {
+  const rows = await db
+    .selectFrom('user_titles')
+    .select(['title_id', 'earned_at'])
+    .where('user_id', '=', c.get('userId'))
+    .execute();
+  const earned = new Map(rows.map((r) => [r.title_id, r.earned_at]));
+  const titles: TitleView[] = TITLES.map((t) => {
+    const earnedAt = earned.get(t.id) ?? null;
+    return earnedAt ? { name: t.name, description: t.description, earnedAt } : { name: null, description: null, earnedAt: null };
+  });
+  return c.json(titles);
 });

@@ -14,6 +14,7 @@ import { requireAuth, type AuthEnv } from '../auth';
 import { db } from '../db';
 import { addEvent } from '../events';
 import { GameError } from '../game/errors';
+import { awardTitles } from '../game/titles';
 
 export const realestateRoutes = new Hono<AuthEnv>();
 
@@ -34,7 +35,7 @@ realestateRoutes.post('/realestate/buy', requireAuth, async (c) => {
   if (building === 'store' && !isStoreKind(storeKind)) throw new GameError('店舗の業種を選んでください');
   const price = propertyValue(cell.landPrice, building);
 
-  const message = await db.transaction().execute(async (trx) => {
+  const result = await db.transaction().execute(async (trx) => {
     const owned = await trx.selectFrom('lands').select('owner_id').where('cell_id', '=', cell.id).executeTakeFirst();
     if (owned) throw new GameError('その土地はすでに売れています');
     const count = await trx
@@ -55,9 +56,9 @@ realestateRoutes.post('/realestate/buy', requireAuth, async (c) => {
       .execute();
     const msg = `不動産屋で土地（${cell.x + 1}-${cell.y + 1}）を買い、${buildingName(building, storeKind)}を建てた（${yen(price)}）`;
     await addEvent(trx, userId, msg);
-    return msg;
+    return { message: msg, events: await awardTitles(trx, userId, { log: true }) };
   });
-  return c.json<ActionResult>({ message });
+  return c.json<ActionResult>(result.events.length > 0 ? result : { message: result.message });
 });
 
 // 所有している物件を売る（評価額の 70%）。土地は空き地に戻る
@@ -66,7 +67,7 @@ realestateRoutes.post('/realestate/sell', requireAuth, async (c) => {
   const body = await c.req.json().catch(() => null);
   const cell = lotOf(body?.cellId);
 
-  const message = await db.transaction().execute(async (trx) => {
+  const result = await db.transaction().execute(async (trx) => {
     const land = await trx
       .selectFrom('lands')
       .select(['owner_id', 'building', 'store_kind'])
@@ -80,7 +81,7 @@ realestateRoutes.post('/realestate/sell', requireAuth, async (c) => {
     await trx.updateTable('users').set({ money: user.money + price }).where('id', '=', userId).execute();
     const msg = `不動産屋で${buildingName(land.building, land.store_kind)}（${cell.x + 1}-${cell.y + 1}）を${yen(price)}で売った`;
     await addEvent(trx, userId, msg);
-    return msg;
+    return { message: msg, events: await awardTitles(trx, userId, { log: true }) };
   });
-  return c.json<ActionResult>({ message });
+  return c.json<ActionResult>(result.events.length > 0 ? result : { message: result.message });
 });

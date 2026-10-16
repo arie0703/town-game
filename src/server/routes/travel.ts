@@ -2,6 +2,7 @@ import { Hono } from 'hono';
 import { yen } from '../../shared/format';
 import { describeEffect } from '../../shared/master/effects';
 import { findItem } from '../../shared/master/items';
+import { STAT_KEYS } from '../../shared/master/titles';
 import { findTravel, isHardTravel } from '../../shared/master/travels';
 import type { ActionResult } from '../../shared/types';
 import { requireAuth, type AuthEnv } from '../auth';
@@ -37,6 +38,7 @@ travelRoutes.post('/travel', requireAuth, async (c) => {
       return {
         user: { ...change.user, money: paid.user.money },
         abilities: change.abilities,
+        stats: { [STAT_KEYS.travel(travel.id)]: 1 },
         items,
         message: `${travel.name}に行ってきた（${yen(travel.cost)}、身体パワー -${travel.powerCost}、${describeEffect(effectForBmi(travel.effect, bmi(player.user.height, player.user.weight_g)))}）${souvenirText}`,
         context: { travelCost: travel.cost },

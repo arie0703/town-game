@@ -8,6 +8,7 @@ import { db, type DB, type LandsTable, type UsersTable } from '../db';
 import { addEvent } from '../events';
 import { GameError } from './errors';
 import { rollPropertyIncome } from './property-income';
+import { addStats, awardTitles } from './titles';
 import { rollRandomEvent } from './random-events';
 
 // items: 所持アイテム（itemId → 個数）、jobExp: 職業ごとの経験値（jobId → 経験値）、lands: 所有している物件
@@ -32,6 +33,8 @@ export type PlayerChange = {
   context?: EventContext;
   // 状態の付け外し（set: 付ける・段階を変える、remove: 外す）
   states?: { set?: UserState[]; remove?: StateId[] };
+  // 称号の判定に使う累計カウンタの増分（key は STAT_KEYS を参照）
+  stats?: Record<string, number>;
 };
 
 // 状態で制限されている行動なら断る
@@ -134,6 +137,9 @@ export async function runAction(
         .onConflict((oc) => oc.columns(['user_id', 'state_id']).doUpdateSet({ level }))
         .execute();
     }
+    await addStats(trx, userId, change.stats ?? {});
+    // 書き戻した後の状態で称号を判定する
+    events.push(...(await awardTitles(trx, userId)));
     await addEvent(trx, userId, [change.message, ...events.map((e) => `★${e.text}`)].join(' '));
     return events.length > 0 ? { message: change.message, events } : { message: change.message };
   });

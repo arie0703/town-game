@@ -6,6 +6,7 @@ import { effectForBmi } from '../../shared/bmi';
 import { describeEffect } from '../../shared/master/effects';
 import { findItem } from '../../shared/master/items';
 import { findMenu } from '../../shared/master/menus';
+import { STAT_KEYS } from '../../shared/master/titles';
 import type { ActionResult, InventoryItem } from '../../shared/types';
 import { requireAuth, type AuthEnv } from '../auth';
 import { db } from '../db';
@@ -101,6 +102,7 @@ itemRoutes.post('/eat', requireAuth, async (c) => {
     return {
       user: { ...change.user, money: player.user.money - menu.price },
       abilities: change.abilities,
+      stats: menu.drink ? { [STAT_KEYS.drinks]: 1 } : undefined,
       message: `${menu.shop === 'izakaya' ? '居酒屋' : '食堂'}で${menu.name}を${menu.drink ? '飲んだ' : '食べた'}（${yen(menu.price)}、${describeEffect(effectForBmi(menu.effect, bmiOf(player)))}）`,
     };
   }, menu.shop === 'izakaya' ? 'izakaya' : 'cafeteria');

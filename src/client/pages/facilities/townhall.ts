@@ -15,6 +15,7 @@ export async function renderTownhall(container: HTMLElement, me: Me, rerender: (
         <tr${r.id === me.id ? ' class="row-current"' : ''}>
           <td>${r.rank}</td>
           <td>${escapeHtml(r.name)}</td>
+          <td>${r.title ? escapeHtml(r.title) : '<span class="muted">-</span>'}</td>
           <td>${escapeHtml(r.jobName)}</td>
           <td>${r.goodnessRank}</td>
           <td>${yen(r.totalAssets)}</td>
@@ -44,7 +45,7 @@ export async function renderTownhall(container: HTMLElement, me: Me, rerender: (
     </div>
     <p>住民数: ${residents.length}人（総資産 = 持ち金 + 預金 + 所有物件の評価額）</p>
     <table class="table list">
-      <thead><tr><th>順位</th><th>名前</th><th>職業</th><th>善悪</th><th>総資産</th></tr></thead>
+      <thead><tr><th>順位</th><th>名前</th><th>称号</th><th>職業</th><th>善悪</th><th>総資産</th></tr></thead>
       <tbody>${rows}</tbody>
     </table>
   `;

@@ -4,6 +4,7 @@ import { renderFight } from './pages/fight';
 import { renderHome } from './pages/home';
 import { renderItems } from './pages/items';
 import { renderNotFound } from './pages/not-found';
+import { renderTitles } from './pages/titles';
 import { renderTop } from './pages/top';
 
 type Page = (root: HTMLElement, params: Record<string, string>) => void | Promise<void>;
@@ -15,6 +16,7 @@ const routes: Array<[string, Page]> = [
   ['/facility/:id', renderFacility],
   ['/items', renderItems],
   ['/fight', renderFight],
+  ['/titles', renderTitles],
 ];
 
 function matchRoute(path: string): { page: Page; params: Record<string, string> } {

@@ -70,6 +70,9 @@ export type JobView = {
 export type InventoryItem = { itemId: string; quantity: number };
 
 // GET /api/residents のレスポンス要素（総資産の多い順）
+// GET /api/titles のレスポンス要素（未獲得は名前・説明を伏せて null）
+export type TitleView = { name: string | null; description: string | null; earnedAt: string | null };
+
 export type ResidentView = {
   rank: number;
   id: number;
@@ -77,4 +80,5 @@ export type ResidentView = {
   jobName: string;
   totalAssets: number;
   goodnessRank: GoodnessRank;
+  title: string | null; // 直近に獲得した称号
 };

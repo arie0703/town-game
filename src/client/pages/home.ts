@@ -87,6 +87,7 @@ export async function renderHome(root: HTMLElement): Promise<void> {
             <button type="button" id="rest-full" title="元気いっぱいになるまで休息をくり返す">しっかり休む</button>
             <a class="button" href="#/items">アイテム</a>
             <a class="button" href="#/fight">ストリートファイト</a>
+            <a class="button" href="#/titles">達成目録</a>
           </div>
         </div>
         <div class="abilities">

@@ -3,7 +3,8 @@ import { Hono } from 'hono';
 import { bodyLimit } from 'hono/body-limit';
 import { csrf } from 'hono/csrf';
 import { HTTPException } from 'hono/http-exception';
-import { initDb } from './db';
+import { db, initDb } from './db';
+import { awardTitlesForAll } from './game/titles';
 import { GameError } from './game/errors';
 import { actionRoutes } from './routes/actions';
 import { authRoutes } from './routes/auth';
@@ -47,6 +48,7 @@ app.onError((err, c) => {
 });
 
 await initDb();
+await awardTitlesForAll(db);
 
 const port = Number(process.env.API_PORT ?? 8787);
 

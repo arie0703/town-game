@@ -53,6 +53,20 @@ export interface UserJobExpTable {
   exp: number;
 }
 
+// 獲得済みの称号
+export interface UserTitlesTable {
+  user_id: number;
+  title_id: string;
+  earned_at: string;
+}
+
+// 称号の判定に使う累計カウンタ（key は STAT_KEYS を参照）
+export interface UserStatsTable {
+  user_id: number;
+  key: string;
+  value: number;
+}
+
 // 住民に付いている状態（level: 裏組織の階級などの段階）
 export interface UserStatesTable {
   user_id: number;
@@ -69,6 +83,8 @@ export interface DB {
   user_items: UserItemsTable;
   user_job_exp: UserJobExpTable;
   user_states: UserStatesTable;
+  user_titles: UserTitlesTable;
+  user_stats: UserStatsTable;
 }
 
 const dbPath = process.env.DB_PATH ?? 'town.sqlite';
@@ -175,6 +191,24 @@ export async function initDb(): Promise<void> {
     .addColumn('level', 'integer', (col) => col.notNull().defaultTo(0))
     .addColumn('created_at', 'text', (col) => col.notNull())
     .addPrimaryKeyConstraint('user_states_pk', ['user_id', 'state_id'])
+    .execute();
+
+  await db.schema
+    .createTable('user_titles')
+    .ifNotExists()
+    .addColumn('user_id', 'integer', (col) => col.notNull().references('users.id'))
+    .addColumn('title_id', 'text', (col) => col.notNull())
+    .addColumn('earned_at', 'text', (col) => col.notNull())
+    .addPrimaryKeyConstraint('user_titles_pk', ['user_id', 'title_id'])
+    .execute();
+
+  await db.schema
+    .createTable('user_stats')
+    .ifNotExists()
+    .addColumn('user_id', 'integer', (col) => col.notNull().references('users.id'))
+    .addColumn('key', 'text', (col) => col.notNull())
+    .addColumn('value', 'integer', (col) => col.notNull())
+    .addPrimaryKeyConstraint('user_stats_pk', ['user_id', 'key'])
     .execute();
 
   await db.schema

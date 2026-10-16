@@ -1,5 +1,6 @@
 import { Hono } from 'hono';
 import { CHOHAN, FIGHT, LIMITS } from '../../shared/config';
+import { STAT_KEYS } from '../../shared/master/titles';
 import { GOODNESS, goodnessRank, isGood } from '../../shared/goodness';
 import { yen } from '../../shared/format';
 import type { ActionResult } from '../../shared/types';
@@ -7,7 +8,7 @@ import { requireAuth, type AuthEnv } from '../auth';
 import { db } from '../db';
 import { GameError } from '../game/errors';
 import { combatPower, winRate } from '../game/fight';
-import { loadPlayer, runAction } from '../game/player';
+import { loadPlayer, runAction, type PlayerChange } from '../game/player';
 import { chance, pickRandom, randomIntInclusive } from '../game/random';
 import { assertStamina, spendCondition, clamp } from '../game/status';
 
@@ -32,6 +33,8 @@ battleRoutes.post('/casino/chohan', requireAuth, async (c) => {
     return {
       user: { money: won ? user.money + bet : user.money - bet },
       message: won ? `${head}当たり！${yen(bet * 2)}を受け取った` : `${head}外れ…${yen(bet)}を失った`,
+      // 持ち金を全額賭けて勝ったら記録する（称号「一夜成金」）
+      stats: won && bet === user.money ? { [STAT_KEYS.chohanAllInWins]: 1 } : undefined,
     };
   });
   return c.json<ActionResult>(result);
@@ -45,7 +48,7 @@ battleRoutes.post('/fight', requireAuth, async (c) => {
   // 相手のデータは読み取りのみ（書き換えない）
   const opponent = await loadPlayer(db, pickRandom(others).id);
 
-  const result = await runAction(userId, ({ user, abilities }) => {
+  const result = await runAction(userId, ({ user, abilities }): PlayerChange => {
     if (user.body_power < FIGHT.powerCost) throw new GameError('身体パワーが足りません。休息しましょう');
     assertStamina(user.condition, '戦えません');
 
@@ -64,6 +67,7 @@ battleRoutes.post('/fight', requireAuth, async (c) => {
       return {
         user: { ...base, money: user.money + prize, condition },
         message: `${head}勝利！賞金${yen(prize)}を手に入れた`,
+        stats: { [STAT_KEYS.fightWins]: 1 },
       };
     }
     const lossRate = isGood(user.goodness) ? GOODNESS.goodFightLossRate : 0.5;
@@ -75,6 +79,7 @@ battleRoutes.post('/fight', requireAuth, async (c) => {
         condition: clamp(condition - FIGHT.loseConditionDamage, 0, LIMITS.conditionMax),
       },
       message: `${head}敗北…持ち金の${lossRate === 0.5 ? '半分' : '3分の1'}を失った（-${yen(lost)}）`,
+      stats: { [STAT_KEYS.fightLosses]: 1 },
     };
   }, 'fight');
   return c.json<ActionResult>(result);
