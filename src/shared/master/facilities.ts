@@ -9,6 +9,7 @@ export const FACILITIES = [
   { id: 'realestate', name: '不動産屋', description: '土地を買って一軒家・マンション・店舗を建てられる。売却もできる。' },
   { id: 'bank', name: '銀行', description: 'お金を預けたり引き出したりできる。預けたお金はストリートファイトで負けても減らない。' },
   { id: 'blackmarket', name: '闇市場', description: '路地裏の怪しい露店。体を大きく変える薬や、高価な品を扱っている。' },
+  { id: 'snack', name: 'スナック', description: 'ママとお酒を飲みながら語らう店。通うほど、ママとの仲が深まる。' },
   { id: 'izakaya', name: '居酒屋', description: 'お酒と料理を楽しめる。飲みすぎ注意。' },
   { id: 'travel', name: '旅行代理店', description: '国内外のツアーを扱う。お金と体力はかかるが、旅は人を成長させる。' },
   { id: 'hideout', name: '裏組織のアジト', description: '路地の奥にある古びた事務所。' },

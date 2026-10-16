@@ -51,6 +51,14 @@ export const NPCS = {
     name: '旅行代理店のスタッフ',
     lines: ['いらっしゃいませ！どちらへお出かけですか？', '旅先では思わぬ出会いがあるかもしれませんよ', '珍しいお土産、見つかるといいですね', 'パスポートのお忘れなく！'],
   },
+  npc_yoko: {
+    name: '陽子ママ',
+    lines: ['いらっしゃい！今日も一日お疲れさま', 'まあまあ、一杯飲んでいきなさいよ', '歌っていく？マイクあるわよ', '悩みがあるなら聞くわよ'],
+  },
+  npc_kurenai: {
+    name: '紅ママ',
+    lines: ['……座りなよ', 'ここは堅気の店じゃないよ', '飲むなら、いい酒を頼みな'],
+  },
   npc_izakaya: {
     name: '居酒屋の大将',
     lines: ['へいらっしゃい！', 'とりあえず生でいいかい？', '飲みすぎは明日の自分が困るぜ', '〆のラーメンは別腹だろ？'],
@@ -76,6 +84,7 @@ export const FACILITY_NPC: Record<FacilityId, NpcId> = {
   hideout: 'npc_hideout',
   travel: 'npc_travel',
   izakaya: 'npc_izakaya',
+  snack: 'npc_yoko',
   townhall: 'npc_townhall',
 };
 

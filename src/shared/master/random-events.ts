@@ -16,7 +16,8 @@ export type ActionKind =
   | 'blackmarket'
   | 'fight'
   | 'shinogi'
-  | 'travel';
+  | 'travel'
+  | 'snack';
 
 // 行動の結果のうち、イベントの条件・効果に使う値（行動ごとに必要なものだけ入る）
 export type EventContext = {
@@ -25,6 +26,7 @@ export type EventContext = {
   boughtQuantity?: number;
   trainedAbilities?: AbilityKey[]; // 学校: その授業で上がった能力
   travelCost?: number; // 旅行: 旅行の費用
+  mamaId?: string; // スナック: 相手のママ
 };
 
 // イベント抽選時の状態（行動の結果を反映した後）
@@ -40,6 +42,7 @@ export type EventState = {
 export type EventEffect = {
   money?: number;
   goodness?: number;
+  affinity?: number; // スナック: 相手のママの友好度の増減
   bodyPower?: number;
   brainPower?: number;
   condition?: number;
@@ -291,6 +294,38 @@ export const RANDOM_EVENTS: readonly RandomEvent[] = [
     weight: 10,
     tone: 'good',
     effect: (_, ctx) => ({ money: Math.floor((ctx.travelCost ?? 0) * 0.5) }),
+  },
+
+  // スナック
+  { id: 'drunk_customer', text: '酔客に絡まれた', actions: ['snack'], weight: 15, tone: 'bad', effect: { condition: -15 } },
+  {
+    id: 'rip_off',
+    text: 'ぼったくられた',
+    actions: ['snack'],
+    weight: 10,
+    tone: 'bad',
+    when: (s) => s.money >= 10_000,
+    effect: (s) => ({ money: -Math.floor(s.money * 0.1) }),
+  },
+  { id: 'regular_friend', text: '常連客と意気投合した', actions: ['snack'], weight: 15, tone: 'good', effect: { gain: { humor: 2 } } },
+  // 紅ママの店のみ
+  {
+    id: 'feud_rumor',
+    text: '抗争の噂を聞いた',
+    actions: ['snack'],
+    weight: 10,
+    tone: 'bad',
+    when: (_, ctx) => ctx.mamaId === 'kurenai',
+    effect: { goodness: -5 },
+  },
+  {
+    id: 'boss_favor',
+    text: '組の上役に気に入られ、紅ママの機嫌が良くなった',
+    actions: ['snack'],
+    weight: 10,
+    tone: 'good',
+    when: (_, ctx) => ctx.mamaId === 'kurenai',
+    effect: { affinity: 5 },
   },
 
   // ストリートファイト

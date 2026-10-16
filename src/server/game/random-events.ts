@@ -1,6 +1,7 @@
 import type { Abilities } from '../../shared/abilities';
 import { LIMITS, RANDOM_EVENT } from '../../shared/config';
 import { clampGoodness } from '../../shared/goodness';
+import { AFFINITY_MAX } from '../../shared/master/snack';
 import {
   describeEventEffect,
   RANDOM_EVENTS,
@@ -44,6 +45,7 @@ export function mergeChange(player: Player, change: PlayerChange): Player {
     jobExp: { ...player.jobExp, ...change.jobExp },
     lands: player.lands,
     states: player.states,
+    affinities: { ...player.affinities, ...change.affinities },
   };
 }
 
@@ -123,6 +125,12 @@ export function rollRandomEvent(
 
   const effect = typeof event.effect === 'function' ? event.effect({ money: merged.user.money, goodness: merged.user.goodness, jobId: merged.user.job_id, items: merged.items }, ctx) : event.effect;
   const result = applyEventEffect(player, change, effect);
+  // スナックのママの友好度（段階による伸びの鈍化はかけない）
+  if (effect.affinity && ctx.mamaId) {
+    const current = merged.affinities[ctx.mamaId] ?? { value: 0, rewardedStage: 0 };
+    const value = clamp(current.value + effect.affinity, 0, AFFINITY_MAX);
+    result.change = { ...result.change, affinities: { ...result.change.affinities, [ctx.mamaId]: { ...current, value } } };
+  }
   const detail = describeEventEffect(result.applied);
   const text = detail ? `${event.text}（${detail}）` : event.text;
   return { change: result.change, events: [{ text, tone: event.tone }] };

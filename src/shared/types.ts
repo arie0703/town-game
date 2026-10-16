@@ -1,5 +1,6 @@
 import type { Abilities } from './abilities';
 import type { GoodnessRank } from './goodness';
+import type { MamaId } from './master/snack';
 import type { StateDef, UserState } from './master/states';
 import type { BuildingType, StoreKind } from './master/buildings';
 import type { MapCell } from './master/map';
@@ -70,6 +71,9 @@ export type JobView = {
 export type InventoryItem = { itemId: string; quantity: number };
 
 // GET /api/residents のレスポンス要素（総資産の多い順）
+// GET /api/snack のレスポンス要素（友好度は段階と進み具合 0〜1 だけ。数値は出さない）
+export type SnackMamaView = { id: MamaId; stage: number; stageName: string; progress: number };
+
 // GET /api/titles のレスポンス要素（未獲得は名前・説明を伏せて null）
 export type TitleView = { name: string | null; description: string | null; earnedAt: string | null };
 

@@ -2,6 +2,7 @@ import { ABILITIES, type Abilities } from '../abilities';
 import { yen } from '../format';
 import { JOB_LINES } from './jobs';
 import { findItem } from './items';
+import { KURENAI_TRIBUTE_DISCOUNT } from './snack';
 
 // 裏組織。所属すると状態「裏組織所属」が付き、level に階級（0 = 組員）が入る
 export const GANG = {
@@ -30,6 +31,11 @@ export const GANG_RANKS: readonly GangRank[] = [
   { name: '幹部', shinogiBase: 6_000, promotion: { tribute: 5_000_000, abilities: { arm: 60, power: 60 }, itemId: 'silver_pistol' } },
   { name: '組長', shinogiBase: 10_000, promotion: { tribute: 20_000_000, abilities: { arm: 100, power: 100, social: 60 } } },
 ];
+
+// 紅ママ（スナック）の特別な客なら、上納金が割引になる（口利き）
+export function discountedPromotion(promotion: GangPromotion, kurenaiSpecial: boolean): GangPromotion {
+  return kurenaiSpecial ? { ...promotion, tribute: Math.floor(promotion.tribute * (1 - KURENAI_TRIBUTE_DISCOUNT)) } : promotion;
+}
 
 // 昇進条件の判定（画面とサーバーで共通）。特別アイテムの名前は伏せる
 export function gangPromotionChecks(

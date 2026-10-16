@@ -1,6 +1,7 @@
-import { GANG, GANG_RANKS, gangPromotionChecks } from '../../../shared/master/gang';
+import { discountedPromotion, GANG, GANG_RANKS, gangPromotionChecks } from '../../../shared/master/gang';
+import { SPECIAL_STAGE } from '../../../shared/master/snack';
 import { noStaminaAttr } from '../../../shared/stamina';
-import type { InventoryItem, Me } from '../../../shared/types';
+import type { InventoryItem, Me, SnackMamaView } from '../../../shared/types';
 import { api } from '../../api';
 import { yen } from '../../format';
 import { escapeHtml } from '../../html';
@@ -19,10 +20,14 @@ export async function renderHideout(container: HTMLElement, me: Me, rerender: ()
   const next = GANG_RANKS[gang.level + 1];
   const s = GANG.shinogi;
   let promotionHtml = '<p class="muted">これ以上の出世はない。</p>';
+  let promotion = next?.promotion;
   if (next?.promotion) {
-    const inventory = await api.get<InventoryItem[]>('/items');
+    const [inventory, mamas] = await Promise.all([api.get<InventoryItem[]>('/items'), api.get<SnackMamaView[]>('/snack')]);
     const items = Object.fromEntries(inventory.map((i) => [i.itemId, i.quantity]));
-    const checks = gangPromotionChecks(next.promotion, { money: me.money, abilities: me.abilities, items });
+    // 紅ママの特別な客なら、上納金が割引になる
+    const kurenaiSpecial = mamas.some((m) => m.id === 'kurenai' && m.stage >= SPECIAL_STAGE);
+    promotion = discountedPromotion(next.promotion, kurenaiSpecial);
+    const checks = gangPromotionChecks(promotion, { money: me.money, abilities: me.abilities, items });
     const list = checks.map((c) => `<li${c.met ? '' : ' class="muted"'}>${escapeHtml(c.label)}${c.met ? ' ✓' : ''}</li>`).join('');
     promotionHtml = `
       <p>次の階級: <strong>${next.name}</strong></p>
@@ -48,7 +53,7 @@ export async function renderHideout(container: HTMLElement, me: Me, rerender: ()
   `;
   container.querySelector('#shinogi')!.addEventListener('click', () => postAction('/hideout/shinogi', {}, rerender));
   container.querySelector('#promote')?.addEventListener('click', () => {
-    if (confirm(`上納金 ${yen(next!.promotion!.tribute)} を納めて${next!.name}に昇進しますか？`)) {
+    if (confirm(`上納金 ${yen(promotion!.tribute)} を納めて${next!.name}に昇進しますか？`)) {
       postAction('/hideout/promote', {}, rerender);
     }
   });

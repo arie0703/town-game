@@ -42,8 +42,8 @@ itemRoutes.get('/items', requireAuth, async (c) => {
 itemRoutes.post('/shop/buy', requireAuth, async (c) => {
   const body = await readBody(c.req.raw);
   const item = typeof body.itemId === 'string' ? findItem(body.itemId) : undefined;
-  // お土産（shop: travel）はどこでも売っていない
-  if (!item || item.shop === 'travel') throw new GameError('そのアイテムは売っていません');
+  // お土産・プレゼント（shop: travel / gift）はどこでも売っていない
+  if (!item || (item.shop !== 'shop' && item.shop !== 'blackmarket')) throw new GameError('そのアイテムは売っていません');
   const quantity = Number(body.quantity ?? 1);
   if (!Number.isInteger(quantity) || quantity < 1 || quantity > MAX_PURCHASE_QUANTITY) {
     throw new GameError(`個数は1〜${MAX_PURCHASE_QUANTITY}で指定してください`);

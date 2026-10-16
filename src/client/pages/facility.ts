@@ -13,6 +13,7 @@ import { renderIzakaya } from './facilities/izakaya';
 import { renderJobCenter } from './facilities/job';
 import { renderRealestate } from './facilities/realestate';
 import { renderBlackmarket, renderShop } from './facilities/shop';
+import { renderSnack } from './facilities/snack';
 import { renderTownhall } from './facilities/townhall';
 import { renderTravel } from './facilities/travel';
 import { renderGym, renderSchool } from './facilities/training';
@@ -29,6 +30,7 @@ const BODIES: Record<FacilityId, FacilityBody> = {
   cafeteria: renderCafeteria,
   casino: renderCasino,
   izakaya: renderIzakaya,
+  snack: renderSnack,
   realestate: renderRealestate,
   bank: renderBank,
   blackmarket: renderBlackmarket,

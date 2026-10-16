@@ -13,6 +13,7 @@ export type TitleContext = {
   properties: number;
   totalAssets: number;
   states: readonly UserState[];
+  affinities: Record<string, number>; // NPC との友好度（targetId → 値）
 };
 
 // 累計カウンタのキー（user_stats.key）
@@ -50,6 +51,8 @@ export const TITLES: readonly Title[] = [
     check: (c) => TRAVELS.every((t) => stat(c, STAT_KEYS.travel(t.id)) >= 1),
   },
   { id: 'boss', name: '組長', description: '裏組織で組長になった', check: (c) => c.states.some((s) => s.id === 'gang' && s.level >= 2) },
+  { id: 'yoko_special', name: '陽子ママの特別な客', description: 'スナックで陽子ママの特別な客になった', check: (c) => (c.affinities.yoko ?? 0) >= 100 },
+  { id: 'kurenai_special', name: '紅ママの特別な客', description: 'スナックで紅ママの特別な客になった', check: (c) => (c.affinities.kurenai ?? 0) >= 100 },
   { id: 'saint', name: '聖人', description: '善悪が 100 になった', check: (c) => c.goodness >= 100 },
   { id: 'villain', name: '極道', description: '善悪が -100 になった', check: (c) => c.goodness <= -100 },
 ];

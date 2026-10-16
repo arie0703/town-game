@@ -53,6 +53,14 @@ export interface UserJobExpTable {
   exp: number;
 }
 
+// NPC（スナックのママなど）との友好度。rewarded_stage: 報酬を受け取り済みの段階
+export interface UserAffinitiesTable {
+  user_id: number;
+  target_id: string;
+  value: number;
+  rewarded_stage: number;
+}
+
 // 獲得済みの称号
 export interface UserTitlesTable {
   user_id: number;
@@ -84,6 +92,7 @@ export interface DB {
   user_job_exp: UserJobExpTable;
   user_states: UserStatesTable;
   user_titles: UserTitlesTable;
+  user_affinities: UserAffinitiesTable;
   user_stats: UserStatsTable;
 }
 
@@ -191,6 +200,16 @@ export async function initDb(): Promise<void> {
     .addColumn('level', 'integer', (col) => col.notNull().defaultTo(0))
     .addColumn('created_at', 'text', (col) => col.notNull())
     .addPrimaryKeyConstraint('user_states_pk', ['user_id', 'state_id'])
+    .execute();
+
+  await db.schema
+    .createTable('user_affinities')
+    .ifNotExists()
+    .addColumn('user_id', 'integer', (col) => col.notNull().references('users.id'))
+    .addColumn('target_id', 'text', (col) => col.notNull())
+    .addColumn('value', 'integer', (col) => col.notNull())
+    .addColumn('rewarded_stage', 'integer', (col) => col.notNull().defaultTo(0))
+    .addPrimaryKeyConstraint('user_affinities_pk', ['user_id', 'target_id'])
     .execute();
 
   await db.schema

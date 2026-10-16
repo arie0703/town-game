@@ -17,6 +17,7 @@ import { realestateRoutes } from './routes/realestate';
 import { residentRoutes } from './routes/residents';
 import { townhallRoutes } from './routes/townhall';
 import { hideoutRoutes } from './routes/hideout';
+import { snackRoutes } from './routes/snack';
 import { travelRoutes } from './routes/travel';
 import { trainingRoutes } from './routes/training';
 
@@ -38,6 +39,7 @@ app.route('/', residentRoutes);
 app.route('/', townhallRoutes);
 app.route('/', hideoutRoutes);
 app.route('/', travelRoutes);
+app.route('/', snackRoutes);
 app.route('/', bankRoutes);
 
 app.onError((err, c) => {

@@ -3,8 +3,8 @@ import type { ConsumableEffect } from './effects';
 // type はお店での分類の目安（効果はどの種類にも付けられる）。食事は体力が満タンのときは食べられない
 export type ItemEffect = { type: 'food' | 'ability' | 'recovery' | 'special' | 'souvenir' } & ConsumableEffect;
 
-// shop: 販売している店（お店 / 闇市場）。travel は旅行のお土産で、どこでも売っていない
-export type Item = { id: string; name: string; price: number; shop: 'shop' | 'blackmarket' | 'travel'; effect: ItemEffect };
+// shop: 販売している店（お店 / 闇市場）。travel（旅行のお土産）・gift（ママからのプレゼント）はどこでも売っていない
+export type Item = { id: string; name: string; price: number; shop: 'shop' | 'blackmarket' | 'travel' | 'gift'; effect: ItemEffect };
 
 export const ITEM_TYPE_LABEL = { food: '食事', ability: '能力アップ', recovery: '回復', special: '薬', souvenir: 'お土産' } as const;
 
@@ -17,6 +17,9 @@ export const ITEMS: readonly Item[] = [
   { id: 'blood_olive_oil', name: 'ブラッド・オリーブオイル', price: 0, shop: 'travel', effect: { type: 'souvenir', gain: {} } },
   { id: 'yanomami_pendant', name: 'ヤノマミのペンダント', price: 0, shop: 'travel', effect: { type: 'souvenir', gain: {} } },
   { id: 'prophecy_book', name: '謎の予言書', price: 0, shop: 'travel', effect: { type: 'souvenir', gain: {} } },
+  // スナックのママからのプレゼント（友好度が「お気に入り」になると1回もらえる）
+  { id: 'yoko_omamori', name: '陽子ママのお守り', price: 0, shop: 'gift', effect: { type: 'ability', condition: 20, gain: { love: 5, humor: 5 } } },
+  { id: 'kurenai_card', name: '紅ママの名刺', price: 0, shop: 'gift', effect: { type: 'ability', gain: { arm: 5, power: 5 } } },
   // 旅行のお土産（通常）: 旅行で確率で手に入り、所持アイテムとしていつでも使える。お店では売っていない
   { id: 'onsen_powder', name: '湯の花の素', price: 0, shop: 'travel', effect: { type: 'recovery', condition: 40, gain: { health: 1 } } },
   { id: 'kampo_medicine', name: '秘伝の漢方薬', price: 0, shop: 'travel', effect: { type: 'recovery', bodyPower: 100, brainPower: 100, gain: { health: 2 } } },

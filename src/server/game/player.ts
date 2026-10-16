@@ -19,6 +19,8 @@ export type Player = {
   jobExp: Record<string, number>;
   lands: Array<Pick<Selectable<LandsTable>, 'cell_id' | 'building' | 'store_kind'>>;
   states: UserState[];
+  // NPC との友好度（targetId → 値と、報酬を受け取り済みの段階）
+  affinities: Record<string, { value: number; rewardedStage: number }>;
 };
 
 export type PlayerChange = {
@@ -35,6 +37,10 @@ export type PlayerChange = {
   states?: { set?: UserState[]; remove?: StateId[] };
   // 称号の判定に使う累計カウンタの増分（key は STAT_KEYS を参照）
   stats?: Record<string, number>;
+  // 変更後の友好度（targetId → 値と、報酬を受け取り済みの段階）
+  affinities?: Record<string, { value: number; rewardedStage: number }>;
+  // 行動の結果のメッセージの下に別の行で出す出来事（友好度の段階が上がった、など）
+  events?: ActionEvent[];
 };
 
 // 状態で制限されている行動なら断る
@@ -83,7 +89,15 @@ export async function loadPlayer(executor: Kysely<DB>, userId: number): Promise<
     .execute();
   // マスタから消した状態は無視する
   const states = stateRows.filter((r) => isStateId(r.state_id)).map((r) => ({ id: r.state_id, level: r.level }));
-  return { user, abilities, items, jobExp, lands, states };
+  const affinityRows = await executor
+    .selectFrom('user_affinities')
+    .select(['target_id', 'value', 'rewarded_stage'])
+    .where('user_id', '=', userId)
+    .execute();
+  const affinities = Object.fromEntries(
+    affinityRows.map((r) => [r.target_id, { value: r.value, rewardedStage: r.rewarded_stage }]),
+  );
+  return { user, abilities, items, jobExp, lands, states, affinities };
 }
 
 // アクション共通処理: 読み込み → 計算（fn）→ ランダムイベント・物件の収入 → 書き戻し → 出来事ログ を1トランザクションで行う
@@ -96,7 +110,7 @@ export async function runAction(
   return db.transaction().execute(async (trx) => {
     const player = await loadPlayer(trx, userId);
     let change = fn(player);
-    const events: ActionEvent[] = [];
+    const events: ActionEvent[] = [...(change.events ?? [])];
     if (kind) {
       const random = rollRandomEvent(kind, player, change);
       const income = rollPropertyIncome(player, random.change);
@@ -135,6 +149,13 @@ export async function runAction(
         .insertInto('user_states')
         .values({ user_id: userId, state_id: id, level, created_at: new Date().toISOString() })
         .onConflict((oc) => oc.columns(['user_id', 'state_id']).doUpdateSet({ level }))
+        .execute();
+    }
+    for (const [targetId, { value, rewardedStage }] of Object.entries(change.affinities ?? {})) {
+      await trx
+        .insertInto('user_affinities')
+        .values({ user_id: userId, target_id: targetId, value, rewarded_stage: rewardedStage })
+        .onConflict((oc) => oc.columns(['user_id', 'target_id']).doUpdateSet({ value, rewarded_stage: rewardedStage }))
         .execute();
     }
     await addStats(trx, userId, change.stats ?? {});

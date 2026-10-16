@@ -1,7 +1,8 @@
 import { Hono } from 'hono';
 import { yen } from '../../shared/format';
 import { clampGoodness } from '../../shared/goodness';
-import { GANG, GANG_RANKS, gangPromotionChecks } from '../../shared/master/gang';
+import { discountedPromotion, GANG, GANG_RANKS, gangPromotionChecks } from '../../shared/master/gang';
+import { AFFINITY_MAX } from '../../shared/master/snack';
 import type { ActionResult } from '../../shared/types';
 import { requireAuth, type AuthEnv } from '../auth';
 import { GameError } from '../game/errors';
@@ -39,7 +40,7 @@ hideoutRoutes.post('/hideout/promote', requireAuth, async (c) => {
     const gang = memberOf(player);
     const next = GANG_RANKS[gang.level + 1];
     if (!next?.promotion) throw new GameError('これ以上の出世はない');
-    const { promotion } = next;
+    const promotion = discountedPromotion(next.promotion, (player.affinities.kurenai?.value ?? 0) >= AFFINITY_MAX);
     const unmet = gangPromotionChecks(promotion, { money: player.user.money, abilities: player.abilities, items: player.items })
       .filter((check) => !check.met)
       .map((check) => check.label);

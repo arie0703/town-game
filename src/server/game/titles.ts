@@ -31,6 +31,7 @@ async function titleContext(executor: Kysely<DB>, userId: number): Promise<Title
     properties: player.lands.length,
     totalAssets: player.user.money + player.user.deposit + landTotal,
     states: player.states,
+    affinities: Object.fromEntries(Object.entries(player.affinities).map(([id, a]) => [id, a.value])),
   };
 }
 
